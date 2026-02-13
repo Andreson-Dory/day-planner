@@ -5,6 +5,7 @@ import { useState } from "react";
 import { SubHeader } from "@/components/headers/SubHeader";
 import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.SetStateAction<string[]>>) => {
     const dates: Record<string, any> = {};
@@ -48,9 +49,13 @@ export default function CreatePlan () {
     const [selected, setSelected] = useState<string[]>([]);
     const [weekDays, setWeekDays] = useState<string[]>([]);
     const [openDays, setOpenDays] = useState<Set<number>>(new Set());
+    const colors = useThemeColors();
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const currentDate = new Date();
     const initialDate = currentDate.toISOString().split('T')[0];   
+    const DayCurrentDate = currentDate.getDay();
+    const firstCurrentWeekDate = new Date(currentDate);
+    firstCurrentWeekDate.setDate(currentDate.getDate() - DayCurrentDate + 1);
     const markedDate = selected.length === 1 ? getDatesInRange( selected[0], setWeekDays) : {};
     const datesPeriod = ( day : string) => {
         setSelected((prev) => {
@@ -77,41 +82,44 @@ export default function CreatePlan () {
     }
 
     return (
-        <RouterView>
-            <SubHeader text="Create Plan" />
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <Calendar
-                    initialDate={initialDate}
-                    hideExtraDays={false}
-                    showSixWeeks={false}
-                    onDayPress={day => {
-                        datesPeriod(day.dateString);               
-                    }}
-                    markingType="period"
-                    markedDates={{
-                        [initialDate] : {today: true, textColor: 'blue'},
-                        ...markedDate
-                    }}
-                     style={styles.calendar}
-                />
-                <View style={styles.subContent}>
-                    {weekDays.map((day, index) => (
-                        <View key={index} style={styles.content}>
-                            <Pressable onPress={() => toogleDays(index)}>
-                                <ThemedText variant="normal" color="light" style={styles.dayText} >
-                                    {days[new Date(day).getDay()]}, {day}
-                                </ThemedText>
-                            </Pressable>
-                            {openDays.has(index) && (
-                                <View>
-                                    <AddButton stl={styles.AddButton} date={new Date(day).toISOString()} />
-                                </View>
-                            )}
-                        </View> 
-                    ))}
-                </View>
-            </ScrollView>
-        </RouterView>
+        <View style={{ flex: 1, backgroundColor: colors.appBase }}>
+            <RouterView>
+                <SubHeader text="Create Plan" />
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <Calendar
+                        initialDate={initialDate}
+                        minDate={firstCurrentWeekDate.toISOString()}
+                        hideExtraDays={false}
+                        showSixWeeks={false}
+                        onDayPress={day => {
+                            datesPeriod(day.dateString);               
+                        }}
+                        markingType="period"
+                        markedDates={{
+                            [initialDate] : {today: true, textColor: 'blue'},
+                            ...markedDate
+                        }}
+                         style={styles.calendar}
+                    />
+                    <View style={styles.subContent}>
+                        {weekDays.map((day, index) => (
+                            <View key={index} style={styles.content}>
+                                <Pressable onPress={() => toogleDays(index)}>
+                                    <ThemedText variant="normal" color="light" style={styles.dayText} >
+                                        {days[new Date(day).getDay()]}, {day}
+                                    </ThemedText>
+                                </Pressable>
+                                {openDays.has(index) && (
+                                    <View>
+                                        <AddButton stl={styles.AddButton} date={new Date(day).toISOString()} view="createPlan" startDate={firstCurrentWeekDate.toISOString()} />
+                                    </View>
+                                )}
+                            </View> 
+                        ))}
+                    </View>
+                </ScrollView>
+            </RouterView>
+        </View>
     )
 }
 

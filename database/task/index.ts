@@ -1,14 +1,14 @@
-import { task } from "@/app/constant/types/task";
-import { SQLiteDatabase, SQLiteExecuteAsyncResult } from "expo-sqlite";
+import { task } from "@/constant/types/task";
+import { SQLiteDatabase } from "expo-sqlite";
 
 export const addTask = async ( db: SQLiteDatabase, task: task) => {
     const { title, startTime, endTime, date} = task;
     const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate) VALUES ( ?, ?, ?, ?); `;
-    const values = [ title, startTime, endTime, date.toISOString().split('T')[0] ];
+    const values = [ title, startTime, endTime, date];
 
     try {
         const result = await db.runAsync(insertQuery, values);
-        return result;
+        return result.lastInsertRowId;
     } catch (error) {
         console.error(error);
         throw Error('Failed to add task');
@@ -21,7 +21,7 @@ export const getTasksToday = async ( db: SQLiteDatabase): Promise<task[]> => {
     const selectQuery = ` SELECT * FROM TASKS WHERE taskDate = $date; `;
 
     try {
-        const result = await db.getAllAsync<task>(selectQuery, [ todayString ]);
+        const result = await db.getAllAsync<task>(selectQuery, { $date: todayString } );
         return result;
     } catch (error) {
         console.error(error);
@@ -41,11 +41,24 @@ export const getTasksWeek = async ( db: SQLiteDatabase, startDate: string, endDa
     }
 }
 
-export const deleteTask = async ( db: SQLiteDatabase, idTask: number) => {
+export const getTasksCurrentCreatedPlan = async ( db: SQLiteDatabase, startDate: string): Promise<task[]> => {
+    const selectQuery = ` SELECT * FROM TASKS WHERE taskDate >= ?; `;
+
+    try {
+        const result = await db.getAllAsync<task>(selectQuery, [ startDate ]);
+        return result;
+    } catch (error) {
+        console.error(error);
+        throw Error('Failed to get current created plan tasks');        
+    }
+}
+
+export const deleteTask = async ( db: SQLiteDatabase, idTask: number ) => {
     const deleteQuery = ` DELETE FROM TASKS WHERE idTask = ?; `;
 
     try {
-        return await db.runAsync(deleteQuery, [ idTask ]);
+        const result = await db.runAsync(deleteQuery, [ idTask ]);
+        return result;
     } catch (error) {
         console.error(error);
         throw Error('Failed to delete task');

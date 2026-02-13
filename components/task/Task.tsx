@@ -4,12 +4,14 @@ import { task } from "@/constant/types/task";
 import Button from "../button/Button";
 import { ThemedText } from "../ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import Row from "../row";
 
 type Props = TextProps & {
     task: task
+    create_plan: boolean
 }
 
-export function Task({task} : Props) {
+export function Task({task, create_plan} : Props) {
     const colors = useThemeColors();
     const [pressed, setPressed] =  useState(false);
     return (
@@ -21,10 +23,13 @@ export function Task({task} : Props) {
                     <ThemedText variant="normal" color="text">Start Time : {task.startTime} </ThemedText>
                     <ThemedText variant="normal" color="text">End Time : {task.endTime} </ThemedText>
                 </View>
-                <View style={styles.buttons}>
-                    <Button type="Finish"/>
-                    <Button type="Delete"/>
-                </View>
+                {task.isCompleted === false ?  
+                    <Row >
+                        {create_plan === true ? null : <Button type="Finish"/>}
+                        <Button type="Delete"/>
+                    </Row> : 
+                    null
+                }
                 </View>}
             </View>
         </Pressable>
@@ -42,11 +47,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
         borderRadius: 15,
         gap: 5,
-    },
-    buttons: {
-        flexDirection: "row",
-        marginTop: 5,
-        gap: 20,
     },
     timeDetails: {
         flexDirection: "column",

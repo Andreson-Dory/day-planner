@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, TextProps, View } from "react-native";
 import RouterView from "../router-view";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Task } from "@/components/task/Task";
 import { task } from "@/constant/types/task";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -8,13 +8,22 @@ import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useDispatch } from "react-redux";
+import { getTasksWeekAction } from "@/redux/actions/taskActions";
+import { DatabaseContext } from "@/context/databaseContext";
 
 type Props = TextProps & {
     weekTasks: task[];
     weekDays: string[];
 }
 
-const getDatesInRange = ( setWeekDays: React.Dispatch<React.SetStateAction<string[]>> ) => {
+type getDateProps = {
+    setWeekDays: React.Dispatch<React.SetStateAction<string[]>>;
+    setWeekDaysCompleted: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const getDatesInRange = ( { setWeekDays, setWeekDaysCompleted }: getDateProps ) => {
     setWeekDays([]);
     let currentDate = new Date();  
 
@@ -28,6 +37,7 @@ const getDatesInRange = ( setWeekDays: React.Dispatch<React.SetStateAction<strin
         setWeekDays((prev) => [...prev, dateString]);
         firstWeekDate.setDate(firstWeekDate.getDate() + 1);
     };  
+    setWeekDaysCompleted(true);
 }
 
 function Contents ({ weekTasks, weekDays } : Props) {
@@ -59,9 +69,9 @@ function Contents ({ weekTasks, weekDays } : Props) {
                         {openDays.has(index) && (
                             <View>
                                 {weekTasks.filter(task => (new Date(task.date).getDay() === index)).map((taskItem) => (
-                                    <Task key={taskItem.id} task={taskItem} />
+                                    <Task key={taskItem.id} task={taskItem} create_plan={false} />
                                 ))}
-                                <AddButton stl={styles.AddButton} date={new Date(day).toISOString()} />
+                                <AddButton stl={styles.AddButton} date={new Date(day).toISOString()} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />
                             </View>
                         )}
                     </View> 
@@ -72,19 +82,34 @@ function Contents ({ weekTasks, weekDays } : Props) {
 
 export default function WeekTask () {
     const [weekDays, setWeekDays] = useState<string[]>([]);
-    const [tasks, setTasks] = useState<task[]>(useAppSelector(state => state.tasks.weekTasks) || []);
-    const [filteredTasks, setFilteredTasks] = useState<task[]>(tasks.filter(task => task.isCompleted === false));
+    const [weekDaysCompleted, setWeekDaysCompleted] = useState<boolean>(false);
+    const db = useContext(DatabaseContext);
+    const colors = useThemeColors();
+    const dispatch = useDispatch();
+    const tasks = useAppSelector<task[]>(state => state.tasks.weekTasks);
+    const [filteredTasks, setFilteredTasks] = useState<task[]>([]);
 
     useEffect(() => {
-        getDatesInRange(setWeekDays);
+        getDatesInRange({setWeekDays, setWeekDaysCompleted});
     }, [])
 
+    useEffect(() => {
+        if(!db) return;
+        if(!weekDaysCompleted) return;
+
+        dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));
+        setFilteredTasks(tasks.filter(task => task.isCompleted === false));
+        
+    }, [db, weekDaysCompleted, weekDays])
+
     return (
-        <RouterView>
-            <SubHeader text="Week Task" />
-            <StatusHeader setter={setFilteredTasks} tasks={tasks} />
-            <Contents weekTasks={filteredTasks} weekDays={weekDays} />
-        </RouterView>
+        <View style={{ flex: 1, backgroundColor: colors.appBase }}>
+            <RouterView>
+                <SubHeader text="Week Task" />
+                <StatusHeader setter={setFilteredTasks} tasks={tasks} />
+                <Contents weekTasks={filteredTasks} weekDays={weekDays} />
+            </RouterView>
+        </View>
     )
 }
 

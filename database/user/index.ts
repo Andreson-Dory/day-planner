@@ -1,7 +1,7 @@
-import { user } from "@/app/constant/types/user";
+import { user } from "@/constant/types/user";
 import { SQLiteDatabase } from "expo-sqlite";
 
-export const addUser = ( db: SQLiteDatabase, user: user) => {
+export const addUser = ( db: SQLiteDatabase, user: user ) => {
     const { firstName, lastName } = user;
     const insertQuery = ` INSERT INTO USERS ( firstName, lastName ) VALUES ( ?, ? ); `;
     const values = [firstName, lastName];
@@ -14,7 +14,7 @@ export const addUser = ( db: SQLiteDatabase, user: user) => {
     }
 }
 
-export const getUser = async ( db: SQLiteDatabase): Promise<user> => {
+export const getUser = async ( db: SQLiteDatabase ): Promise<user> => {
     try {
         const today = new Date();
         const todayString = today.toISOString().split('T')[0];

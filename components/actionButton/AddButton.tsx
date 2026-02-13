@@ -3,20 +3,24 @@ import { Link } from "expo-router";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { ThemedText } from "../ThemedText";
 
-type Props = {
+type Props = TextProps & {
     stl?: ViewProps["style"];
     date: string;
+    view: string;
+    startDate?: string;
+    endDate?: string;
 }
     
-export function AddButton ({ stl , date} : Props) {
+export function AddButton ({ stl , date, view, startDate, endDate } : Props) {
     const colors = useThemeColors();
 
     return (
         <Link 
             href={{
-                pathname: '/modal/addTask',
-                params: { date: date}
+                pathname: '/addTask',
+                params: { date: date, view: view, startDate: startDate, endDate: endDate}
             }}
+            push
             asChild
         >
             <Pressable  >

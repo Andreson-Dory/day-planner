@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
-export default function MainLayout() {
+export default function HomeLayout() {
   const colors = useThemeColors();
 
   return (

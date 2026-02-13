@@ -1,30 +1,40 @@
 
-import { Slot, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, View } from "react-native";
+import { Button, StyleSheet } from "react-native";
 import { Provider } from "react-redux";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { store } from "@/redux/store";
 import { Header } from "@/components/headers/Header";
+import { DatabaseProvider } from "@/context/databaseProvider";
 
 export default function RootLayout() {
   const colors = useThemeColors();
 
+
   return (
-    <Provider store={store}>
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.appBase }]}> 
-        <Header />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen
-              name="addTask"
-              options={{
-                presentation: "modal",
-              }}
-            />
-          </Stack>
-      </SafeAreaView>
-    </Provider>
+    <DatabaseProvider>
+      <Provider store={store}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.appBase }]}> 
+          <Header />
+            <Stack screenOptions={{ headerShown: false }} >
+              <Stack.Screen
+                name="(views)"
+              />
+              <Stack.Screen
+                name="addTask"
+                options={{
+                  presentation: "formSheet",
+                  animation: "slide_from_bottom",
+                  contentStyle: {
+                    backgroundColor: "transparent",
+                  },
+                }}
+              />
+            </Stack>
+        </SafeAreaView>
+      </Provider>
+    </DatabaseProvider>
   );
 }
 
