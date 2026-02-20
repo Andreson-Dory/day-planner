@@ -5,8 +5,7 @@ import { Dispatch } from "react"
 
 export const getTasksTodayAction = (db: SQLiteDatabase) => {
     return async (disptach: Dispatch<any>) => {
-        disptach({type: GET_TODAYS_TASKS});
-
+        disptach({type: GET_TODAYS_TASKS});    
         try {
             const response = await getTodayTasksService(db);
             disptach({ type: GET_TODAYS_TASKS_SUCCESS, payload: response });

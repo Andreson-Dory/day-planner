@@ -15,9 +15,6 @@
     "android": {
       "package": "com.ando.dayplanner"
     },
-    "web": {
-      "output": "static"
-    },
     "plugins": [
       "expo-router",
       "expo-sqlite",

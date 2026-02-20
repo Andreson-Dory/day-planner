@@ -11,7 +11,7 @@ import RouterView from "./(views)/router-view";
 import { useDispatch } from "react-redux";
 import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
-import { getTasksCurrentCreatedPlanAction, getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 
 export default function AddTask() {
     const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate: string, endDate: string }>();
@@ -43,20 +43,22 @@ export default function AddTask() {
             Alert.alert("Warning!", "Please enter valid time");
             return;
         }
-        if(!db) return null;
+        if(!db) {
+            Alert.alert("Warning!", "Not connected to the database!")
+            return;
+        };
 
         const newTask = {
-            id: 0,
-            title: title,
+            idTask: 0,
+            taskTitle: title,
             startTime: startTime,
             endTime: endTime,
-            date: date
-        }
-
-        disptach<any>( await addTaskService(db, newTask));
-        if( view === 'today' ) disptach<any>( await getTasksTodayAction(db));
-        else if( view === 'week' ) disptach<any>( await getTasksWeekAction(db, startDate, endDate));
-        else if( view === 'createPlan') disptach<any>( await getTasksCurrentCreatedPlanAction(db, startDate));
+            taskDate: date
+        };
+        await addTaskService(db, newTask);
+        if( view === 'today' ) disptach<any>(getTasksTodayAction(db));
+        else if( view === 'week' ) disptach<any>(getTasksWeekAction(db, startDate, endDate));
+        router.back()        
     }
 
     return (

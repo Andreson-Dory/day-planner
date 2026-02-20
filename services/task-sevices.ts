@@ -1,9 +1,14 @@
 import { task } from '@/constant/types/task';
-import { addTask, deleteTask, getTasksCurrentCreatedPlan, getTasksToday, getTasksWeek } from '@/database/task/index';
+import { addArrayOfTask, addTask, deleteTask, finishTask, getTasksCurrentCreatedPlan, getTasksToday, getTasksWeek } from '@/database/task/index';
 import { SQLiteDatabase } from 'expo-sqlite';
 
 export const addTaskService = async (db: SQLiteDatabase, task: task) => {
     const response = await addTask(db, task);
+    return response;
+}
+
+export const addArrayOfTaskService = async (db: SQLiteDatabase, tasks: task[]) => {
+    const response = await addArrayOfTask(db, tasks);
     return response;
 }
 
@@ -24,5 +29,10 @@ export const getCurrentCreatedPlanTaskService = async (db: SQLiteDatabase, start
 
 export const deleteTaskService = async (db: SQLiteDatabase, idTask: number) => {
     const response = await deleteTask(db, idTask);
+    return response;
+}
+
+export const setFinishedTask = async (db: SQLiteDatabase, idTask: number) => {
+    const response = await finishTask(db, idTask);
     return response;
 }

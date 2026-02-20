@@ -5,26 +5,25 @@ import Row from "../row";
 import { StyleSheet } from "react-native";
 
 type Props = {
-    setter: React.Dispatch<React.SetStateAction<any>>;
-    tasks: task[];
+    toggle: () => void;
 }
 
-export default function StatusHeader ({ setter, tasks } : Props) {
+export default function StatusHeader ({ toggle } : Props) {
     const [ ongoingpressed, setOngoingPressed ] = useState(true);
     const [ completedPressed, setCompletedPressed ] = useState(false);
 
     const handleClickOngoing = () => {
-        if (ongoingpressed) return;
-        setOngoingPressed(true);
-        setCompletedPressed(false);
-        setter(tasks.filter(task => task.isCompleted === false));
+        if (ongoingpressed) return
+        setOngoingPressed(true)
+        setCompletedPressed(false)
+        toggle()
     }
 
     const handleClickCompleted = () => {
-        if(completedPressed) return;
-        setCompletedPressed(true);
-        setOngoingPressed(false);
-        setter(tasks.filter(task => task.isCompleted === true));
+        if(completedPressed) return
+        setCompletedPressed(true)
+        setOngoingPressed(false)
+        toggle()
     }
 
     return (

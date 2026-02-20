@@ -4,16 +4,17 @@ import { ThemedText } from "../ThemedText";
 import { green } from "react-native-reanimated/lib/typescript/Colors";
 
 type Props = TextProps & {
-   type : "Finish" | "Delete"
+   type : "Finish" | "Delete",
+   onPress : () => void;
 }
 
-export default function Button ({ type } : Props) {
+export default function Button ({ type, onPress } : Props) {
     const colors = useThemeColors();
     const colorButton = type === "Finish" ? colors.success : colors.greyWhite;
     const colorText = type === "Finish" ? "green" : "red";
     
     return (
-        <Pressable style={[styles.button, {backgroundColor: colorButton}]}>
+        <Pressable style={[styles.button, {backgroundColor: colorButton}]} onPress={onPress}>
             <ThemedText variant="button" color={colorText} >{type}</ThemedText>
         </Pressable>
     )

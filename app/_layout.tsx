@@ -11,7 +11,6 @@ import { DatabaseProvider } from "@/context/databaseProvider";
 export default function RootLayout() {
   const colors = useThemeColors();
 
-
   return (
     <DatabaseProvider>
       <Provider store={store}>

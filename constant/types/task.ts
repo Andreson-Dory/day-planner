@@ -1,10 +1,10 @@
 export type task = {
-    id: number;
-    title: string;  
+    idTask: number;
+    taskTitle: string;  
     startTime: string;
     endTime: string;
-    date: string;
-    isCompleted?: boolean;
+    taskDate: string;
+    isCompleted?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }

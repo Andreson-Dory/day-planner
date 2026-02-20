@@ -1,5 +1,5 @@
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import RouterView from "./router-view";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -13,12 +13,13 @@ import Row from "@/components/row";
 import ConfirmButton from "@/components/actionButton/ConfirmButton";
 import { useDispatch } from "react-redux";
 import { DatabaseContext } from "@/context/databaseContext";
-import { addUserService } from "@/services/user-service";
+import { addUserAction } from "@/redux/actions/userActions";
 import { getUserAction } from "@/redux/actions/userActions";
 
 export default function Index () {
     const colors = useThemeColors();
     const user: user = useAppSelector(state => state.user.user);
+    const isLoading: boolean = useAppSelector(state => state.user.isLoadingUser);
     const disptach = useDispatch();
     const db = useContext(DatabaseContext);
     const [modalVisible, setModalVisible] = useState(false);
@@ -26,8 +27,14 @@ export default function Index () {
     const [ lastName, setLastName ] = useState("");
 
     useEffect(() => {      
-        if(!user.firstName) setModalVisible(true);
-    }, [])
+      if(!db) return;
+      disptach<any>(getUserAction(db));
+    }, []);
+
+    useEffect(() => {
+      if(isLoading === true) return;
+      if(!user.firstName) setModalVisible(true);
+    }, [isLoading])
 
     const HideModal = () => {
       Alert.alert("Warnig", 'Are you sure to cancel your user configuration?', [
@@ -59,8 +66,8 @@ export default function Index () {
                 lastName: lastName
             }
     
-            disptach<any>( await addUserService(db, newUser));
-            disptach<any>( await getUserAction(db));
+            disptach<any>(addUserAction(db, newUser));
+            router.back;
         }
 
     return (

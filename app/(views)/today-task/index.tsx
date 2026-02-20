@@ -11,42 +11,50 @@ import { AddButton } from "@/components/actionButton/AddButton";
 import { useDispatch } from "react-redux";
 import { getTasksTodayAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
+import { SQLiteDatabase } from "expo-sqlite";
+import { router } from "expo-router";
+import { useStatusHeader } from "@/hooks/useStatusHeader";
 
 
 type Props = TextProps & {
     tasks: task[];
+    db: SQLiteDatabase | null;
 }
 
-function Contents ({ tasks } : Props) {
+function Contents ({ tasks, db } : Props) {
     return (
         <View>
-            {tasks.map(task => <Task key={task.id} task={task} create_plan={false} /> )} 
+            {tasks.map(task => <Task key={task.idTask} task={task} view="today" startDate="" endDate="" db={db} /> )} 
         </View>
     )
 }
 
 export default function TodayTask () {
-    const colors = useThemeColors();
-    const dispatch = useDispatch();
-    const db = useContext(DatabaseContext);
-    const tasks : task[] = useAppSelector(state => state.tasks.todaysTasks);
-    const [filteredTasks, setFilteredTasks] = useState<task[]>([]);
+    const colors = useThemeColors()
+    const dispatch = useDispatch()
+    const db = useContext(DatabaseContext)
+    const { setTasks, filteredTasks, toggleCompleted } = useStatusHeader()
+    const tasks : task[] = useAppSelector(state => state.tasks.todaysTasks)
+    const [ refresh, setRefresh ] = useState<number>(0)
 
     useEffect(() => {
         if(!db) return;
         dispatch<any>(getTasksTodayAction(db));
-        setFilteredTasks(tasks.filter(task => task.isCompleted === false));
     }, [])
+
+    useEffect(() => {
+        setTasks(tasks)
+    }, [tasks])
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.appBase }}>
             <RouterView>
-                <SubHeader text="Today Task" />
-                <StatusHeader setter={setFilteredTasks} tasks={tasks}/>
+                <SubHeader text="Today Task" onPress={() => setRefresh(prev => prev + 1 )} />
+                <StatusHeader toggle={toggleCompleted} />
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <Contents tasks={filteredTasks} />
+                    <Contents tasks={filteredTasks} db={db} />
                 </ScrollView>
-                <AddButton stl={styles.AddButton} date={new Date().toISOString()} view="today" />
+                <AddButton stl={styles.AddButton} date={new Date().toISOString().split('T')[0]} view="today" />
             </RouterView>
         </View>
     )
