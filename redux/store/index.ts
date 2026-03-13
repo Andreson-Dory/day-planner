@@ -1,18 +1,13 @@
-import { createStore, applyMiddleware, combineReducers } from 'redux';
-import { composeWithDevTools } from '@redux-devtools/extension';
-import { tasksReducer } from '../reducers/tasks';
-import { thunk } from 'redux-thunk';
-import { userReducer } from '../reducers/user';
-
+import { composeWithDevTools } from "@redux-devtools/extension";
+import { applyMiddleware, combineReducers, createStore } from "redux";
+import { thunk } from "redux-thunk";
+import { tasksReducer } from "../reducers/tasks";
 
 export const store = createStore(
   combineReducers({
-    tasks : tasksReducer,
-    user : userReducer
-  }),  
-  composeWithDevTools(
-    applyMiddleware(thunk)
-  ),
+    tasks: tasksReducer,
+  }),
+  composeWithDevTools(applyMiddleware(thunk)),
 );
 
 export type RootState = ReturnType<typeof store.getState>;
