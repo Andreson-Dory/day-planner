@@ -14,7 +14,7 @@ import { DatabaseContext } from "@/context/databaseContext";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 
 export default function AddTask() {
-    const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate: string, endDate: string }>();
+    const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate?: string, endDate?: string }>();
     const colors = useThemeColors();
     const db = useContext(DatabaseContext);
     const disptach = useDispatch();
@@ -57,7 +57,7 @@ export default function AddTask() {
         };
         await addTaskService(db, newTask);
         if( view === 'today' ) disptach<any>(getTasksTodayAction(db));
-        else if( view === 'week' ) disptach<any>(getTasksWeekAction(db, startDate, endDate));
+        else if( view === 'week' ) {if(startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate))};
         router.back()        
     }
 

@@ -20,7 +20,7 @@ export function Header() {
           style={{ width: 51, height: 49 }}
         />
         <ThemedText variant="gretting" color="user">
-          Hello There
+          Hello Dear
         </ThemedText>
       </View>
     </View>
