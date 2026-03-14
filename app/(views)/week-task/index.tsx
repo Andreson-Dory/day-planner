@@ -46,7 +46,7 @@ const getDatesInRange = ( { setWeekDays, setWeekDaysCompleted }: getDateProps ) 
 }
 
 function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     const [openDays, setOpenDays] = useState<Set<number>>(new Set())
     const now = new Date().toISOString().split('T')[0]
 
@@ -66,19 +66,20 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
             <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
                 {weekDays.map((day, index) => 
                     { 
-                        const shouldRender = isCompleted ? day <= now : day >= now 
+                        const shouldRender = isCompleted ? day <= now : day >= now;
+                        const newIndex = index + 1;
 
                         if(!shouldRender) return null
                         
-                        return <View key={index} style={styles.content} >
-                        <Pressable onPress={() =>toogleDays(index)}>
+                        return <View key={newIndex} style={styles.content} >
+                        <Pressable onPress={() =>toogleDays(newIndex)}>
                             <ThemedText variant="normal" color="light" style={styles.dayText} >
                                 {days[new Date(day).getDay()]}, {day}
                             </ThemedText>
                         </Pressable>
-                        {openDays.has(index) && (
+                        {openDays.has(newIndex) && (
                             <View>
-                                {weekTasks.filter(task => (new Date(task.taskDate).getDay() === index)).map((taskItem) => (
+                                {weekTasks.filter(task => (new Date(task.taskDate).getDay() === (newIndex === 7 ? 0 : newIndex))).map((taskItem) => (
                                     <Task key={taskItem.idTask} task={taskItem} view="week" startDate={weekDays[0]} endDate={weekDays[6]} db={db} />
                                 ))}
                                 <AddButton stl={styles.AddButton} date={day} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />
@@ -108,8 +109,7 @@ export default function WeekTask () {
         if(!db) return;
         if(!weekDaysCompleted) return;
         
-        dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));
-        
+        dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));     
     }, [db, weekDaysCompleted, weekDays])
 
     useEffect(() => {

@@ -19,10 +19,10 @@ const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.Se
     setWeekDays([]);
     let currentDate = new Date(startDate);
 
-    const dayOfCurrentWeek = currentDate.getDay();
+    const dayOfCurrentWeek = currentDate.getDay();  
     const firstWeekDate = new Date(currentDate);
     const lastWeekDate = new Date(currentDate);
-    firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek);
+    firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1);
     lastWeekDate.setDate(firstWeekDate.getDate() + 6);
     const endDate = lastWeekDate.toISOString().split('T')[0];
     
@@ -142,13 +142,10 @@ export default function CreatePlan () {
     const [refresh, setRefresh] = useState<number>(0)
     const db = useContext(DatabaseContext)
     const colors = useThemeColors()
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     const currentDate = new Date();
     const initialDate = currentDate.toISOString().split('T')[0]
-    const DayCurrentDate = currentDate.getDay()
-    const firstCurrentWeekDate = new Date(currentDate)
-    firstCurrentWeekDate.setDate(currentDate.getDate() - DayCurrentDate + 1)
-    const datesPeriod = ( day : string) => {
+    const datesPeriod = ( day : string) => {       
         setSelected((prev) => {
             const newArray = Array.from(prev); 
             if(newArray[0] === day){
@@ -193,7 +190,7 @@ export default function CreatePlan () {
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <Calendar
                         initialDate={initialDate}
-                        minDate={firstCurrentWeekDate.toISOString()}
+                        minDate={currentDate.toISOString()}
                         hideExtraDays={false}
                         showSixWeeks={false}
                         onDayPress={day => {
@@ -289,7 +286,7 @@ export default function CreatePlan () {
                     </View>
                 </Modal>
 
-                {/*             Modla for popup options                 */}
+                {/*             Modal for popup options                 */}
                 <Modal animationType="fade"
                     transparent={true}
                     visible={showMenuModal}

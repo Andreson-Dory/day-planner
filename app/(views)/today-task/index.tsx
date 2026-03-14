@@ -51,7 +51,7 @@ export default function TodayTask () {
             <RouterView>
                 <SubHeader text="Today Task" onPress={() => setRefresh(prev => prev + 1 )} />
                 <StatusHeader toggle={toggleCompleted} />
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.Content}>
                     <Contents tasks={filteredTasks} db={db} />
                 </ScrollView>
                 <AddButton stl={styles.AddButton} date={new Date().toISOString().split('T')[0]} view="today" />
@@ -61,10 +61,14 @@ export default function TodayTask () {
 }
 
 const styles = StyleSheet.create({
+    Content: {
+        flex: 1,
+        marginBottom: 20
+    },
     AddButton: {
-        bottom: 10,
+        bottom: 15,
         left: 0,
         right: 0,
-        position: "absolute",
+        zIndex: 10,
     }
 });
