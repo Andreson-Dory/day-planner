@@ -1,8 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, TextProps, View } from "react-native";
 import RouterView from "../router-view";
 import { useContext, useEffect, useState } from "react";
-import { Task } from "@/components/task/Task";
-import { task } from "@/constant/types/task";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
@@ -13,11 +11,12 @@ import { useDispatch } from "react-redux";
 import { getTasksWeekAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
 import { SQLiteDatabase } from "expo-sqlite";
-import { router } from "expo-router";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
+import { TaskCard } from "@/components/task/Task";
+import { Task } from "@/constant/types/task";
 
 type Props = TextProps & {
-    weekTasks: task[]
+    weekTasks: Task[]
     weekDays: string[]
     db: SQLiteDatabase | null
     isCompleted: boolean
@@ -80,7 +79,7 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
                         {openDays.has(newIndex) && (
                             <View>
                                 {weekTasks.filter(task => (new Date(task.taskDate).getDay() === (newIndex === 7 ? 0 : newIndex))).map((taskItem) => (
-                                    <Task key={taskItem.idTask} task={taskItem} view="week" startDate={weekDays[0]} endDate={weekDays[6]} db={db} />
+                                    <TaskCard key={taskItem.idTask} task={taskItem} view="week" startDate={weekDays[0]} endDate={weekDays[6]} db={db} />
                                 ))}
                                 <AddButton stl={styles.AddButton} date={day} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />
                             </View>
@@ -98,7 +97,7 @@ export default function WeekTask () {
     const { isCompleted, setTasks, filteredTasks, toggleCompleted } = useStatusHeader()
     const colors = useThemeColors()
     const dispatch = useDispatch()
-    const tasks = useAppSelector<task[]>(state => state.tasks.weekTasks)
+    const tasks = useAppSelector<Task[]>(state => state.tasks.weekTasks)
     const [ refresh, setRefresh ] = useState<number>(0)
 
     useEffect(() => {

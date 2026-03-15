@@ -1,17 +1,35 @@
-import { task } from "@/constant/types/task";
+import { CreateTask, Task } from "@/constant/types/task";
+import { scheduleTaskNotifications } from "@/lib/notifications";
 import { SQLiteDatabase } from "expo-sqlite";
 
 /**
  * 
  * @param db - SQLite database instance
  * @param task - Task to insert in database
+ * @param tasks - Tasks get after fetch
  * @returns Promise<boolean> - Return true if insertion succeeds 
  */
 
-export const addTask = async ( db: SQLiteDatabase, task: task) => {
-    const { taskTitle, startTime, endTime, taskDate} = task;
-    const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate) VALUES ( ?, ?, ?, ?); `;
-    const values = [ taskTitle, startTime, endTime, taskDate];
+export const addTask = async (
+    db: SQLiteDatabase,
+    task: CreateTask,
+    startNotificationId: string,
+    endNotificationId: string,
+    startReminderId?: string,
+    endReminderId?: string
+) => {
+    const { taskTitle, startTime, endTime, taskDate } = task;
+    const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?); `;
+    const values = [
+        taskTitle,
+        startTime,
+        endTime,
+        taskDate,
+        startNotificationId,
+        endNotificationId,
+        startReminderId || '',
+        endReminderId || ''
+    ];
 
     try {
         const result = await db.runAsync(insertQuery, values);
@@ -22,37 +40,45 @@ export const addTask = async ( db: SQLiteDatabase, task: task) => {
     }
 }
 
-export const addArrayOfTask = async ( db: SQLiteDatabase, tasks: task[] ): Promise<boolean> => {
-    const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate) VALUES ( ?, ?, ?, ?); `;
+export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): Promise<boolean> => {
+    const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?); `;
     try {
         await db.withTransactionAsync(async () => {
             const statement = await db.prepareAsync(insertQuery);
             try {
-                for(const task of tasks) {
-                    const { taskTitle, startTime, endTime, taskDate} = task;
-                    const values = [ taskTitle, startTime, endTime, taskDate];
-
+                for (const task of tasks) {
+                    const { taskTitle, startTime, endTime, taskDate } = task;
+                    const notifications = await scheduleTaskNotifications(task);
+                    const values = [
+                        taskTitle,
+                        startTime,
+                        endTime,
+                        taskDate,
+                        notifications.startId,
+                        notifications.endId,
+                        notifications.startReminderId || '',
+                        notifications.endReminderId || ''
+                    ];
                     await statement.executeAsync(values);
                 }
-            }
-            finally {
+            } finally {
                 await statement.finalizeAsync();
             }
-        })
+        });
         return true;
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         throw Error('Failed to save tasks');
-    } 
+    }
 }
 
-export const getTasksToday = async ( db: SQLiteDatabase): Promise<task[]> => {
+export const getTasksToday = async ( db: SQLiteDatabase): Promise<Task[]> => {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     const selectQuery = ` SELECT * FROM TASKS WHERE taskDate = $date; `;
 
     try {
-        const result = await db.getAllAsync<task>(selectQuery, { $date: todayString } );
+        const result = await db.getAllAsync<Task>(selectQuery, { $date: todayString } );
         return result;
     } catch (error) {
         console.error(error);
@@ -60,11 +86,11 @@ export const getTasksToday = async ( db: SQLiteDatabase): Promise<task[]> => {
     }
 }
 
-export const getTasksWeek = async ( db: SQLiteDatabase, startDate: string, endDate: string): Promise<task[]> => {
+export const getTasksWeek = async ( db: SQLiteDatabase, startDate: string, endDate: string): Promise<Task[]> => {
     const selectQuery = ` SELECT * FROM TASKS WHERE taskDate BETWEEN ? AND ?; `;
 
     try {
-        const result = await db.getAllAsync<task>(selectQuery, [ startDate, endDate ]);
+        const result = await db.getAllAsync<Task>(selectQuery, [ startDate, endDate ]);
         return result;
     } catch (error) {
         console.error(error);
@@ -72,11 +98,23 @@ export const getTasksWeek = async ( db: SQLiteDatabase, startDate: string, endDa
     }
 }
 
-export const getTasksCurrentCreatedPlan = async ( db: SQLiteDatabase, startDate: string): Promise<task[]> => {
+export const getAllTasks = async ( db: SQLiteDatabase): Promise<Task[]> => {
+    const selectQuery = ` SELECT * FROM TASKS; `;
+
+    try {
+        const result = await db.getAllAsync<Task>(selectQuery);
+        return result;
+    } catch (error) {
+        console.error(error);
+        throw Error(' Failed to get all tasks ');
+    }
+}
+
+export const getTasksCurrentCreatedPlan = async ( db: SQLiteDatabase, startDate: string): Promise<Task[]> => {
     const selectQuery = ` SELECT * FROM TASKS WHERE taskDate >= ?; `;
 
     try {
-        const result = await db.getAllAsync<task>(selectQuery, [ startDate ]);
+        const result = await db.getAllAsync<Task>(selectQuery, [ startDate ]);
         return result;
     } catch (error) {
         console.error(error);
@@ -85,14 +123,34 @@ export const getTasksCurrentCreatedPlan = async ( db: SQLiteDatabase, startDate:
 }
 
 export const finishTask = async ( db: SQLiteDatabase, idTask: number) => {
-    const selectQuery = ` UPDATE TASKS SET isCompleted=1 WHERE idTask = ?; `;
+    const updateQuery = ` UPDATE TASKS SET isCompleted=1 WHERE idTask = ?; `;
 
     try {
-        const result = await db.runAsync(selectQuery, [ idTask ]);
+        const result = await db.runAsync(updateQuery, [ idTask ]);
         return result;
     } catch (error) {
         console.error(error);
         throw Error('Failed to update task');        
+    }
+}
+
+export const updateTaskNotificationIds = async ( 
+    db: SQLiteDatabase, 
+    idTask: number, 
+    startNotificationId: string, 
+    endNotificationId: string,
+    startReminderId: string,
+    endReminderId: string
+) => {
+    const updateQuery = ` UPDATE TASKS SET startNotificationId=? AND endNotificationId=? startReminderId=? AND endReminderId=? WHERE idTask = ?; `;
+    const values =[startNotificationId, endNotificationId, startReminderId, endReminderId, idTask]
+    
+    try {
+        const result = await db.runAsync(updateQuery, values);
+        return result;
+    } catch (error) {
+        console.error(error);
+        throw Error('Failed to update task\' NotificationId ');        
     }
 }
 

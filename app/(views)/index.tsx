@@ -4,9 +4,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 import RouterView from "./router-view";
+import { useContext, useEffect } from "react";
+import { DatabaseContext } from "@/context/databaseContext";
+import { getAllTask } from "@/services/task-sevices";
+import { restoreTaskNotifications } from "@/services/notification-service";
+import { createNotificationChannel, requestNotificationPermission } from "@/lib/notifications";
 
 export default function Index() {
   const colors = useThemeColors();
+  const db = useContext(DatabaseContext)
+
+  useEffect(() => {
+    async function initNotifications() {
+      if(db){
+        const tasks = await getAllTask(db);
+        await restoreTaskNotifications(db, tasks);
+      }
+      requestNotificationPermission();
+    }
+    createNotificationChannel();
+    initNotifications();
+  }, [])
 
   return (
     <>
