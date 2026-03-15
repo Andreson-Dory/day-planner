@@ -1,15 +1,38 @@
-import { task } from '@/constant/types/task';
-import { addArrayOfTask, addTask, deleteTask, finishTask, getTasksCurrentCreatedPlan, getTasksToday, getTasksWeek } from '@/database/task/index';
+import { CreateTask } from '@/constant/types/task';
+import { addArrayOfTask, addTask, deleteTask, finishTask, getAllTasks, getTasksCurrentCreatedPlan, getTasksToday, getTasksWeek, updateTaskNotificationIds } from '@/database/task/index';
 import { SQLiteDatabase } from 'expo-sqlite';
 
-export const addTaskService = async (db: SQLiteDatabase, task: task) => {
-    const response = await addTask(db, task);
+export const addTaskService = async (
+    db: SQLiteDatabase,
+    task: CreateTask,
+    startNotificationId: string,
+    endNotificationId: string,
+    startReminderId?: string,
+    endReminderId?: string
+) => {
+    const response = await addTask(db, task, startNotificationId, endNotificationId, startReminderId, endReminderId);
     return response;
 }
 
-export const addArrayOfTaskService = async (db: SQLiteDatabase, tasks: task[]) => {
+export const addArrayOfTaskService = async (db: SQLiteDatabase, tasks: CreateTask[]) => {
     const response = await addArrayOfTask(db, tasks);
     return response;
+}
+
+export const getAllTask = async (db: SQLiteDatabase) => {
+    const response = await getAllTasks(db);
+    return response;
+}
+
+export const updateNotificationsId = async (
+    db: SQLiteDatabase, 
+    idTask: number, 
+    startNotificationId: string, 
+    endNotificationId: string,
+    startReminderId: string,
+    endReminderId: string
+) => {
+    const response = await updateTaskNotificationIds(db, idTask, startNotificationId , endNotificationId, startReminderId, endReminderId)
 }
 
 export const getTodayTasksService = async (db: SQLiteDatabase) => {

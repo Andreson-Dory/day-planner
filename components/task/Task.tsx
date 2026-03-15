@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, TextProps, View } from "react-native";
 import { Dispatch, useState } from "react";
-import { task } from "@/constant/types/task";
 import Button from "../button/Button";
 import { ThemedText } from "../ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -9,9 +8,11 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { deleteTaskService, setFinishedTask } from "@/services/task-sevices";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 import { useDispatch } from "react-redux";
+import * as Notifications from 'expo-notifications'
+import { Task } from "@/constant/types/task";
 
 type Props = TextProps & {
-    task: task
+    task: Task
     view: string
     db: SQLiteDatabase | null;
     startDate: string
@@ -34,7 +35,7 @@ const handleFinish = async (
 }
 
 const handleDelete = async (
-    idTask: number,
+    task: Task,
     db: SQLiteDatabase | null,
     view: string,
     dispatch: Dispatch<any>,
@@ -42,12 +43,16 @@ const handleDelete = async (
     endDate: string,
 ) => {
     if(!db) return;
-    await deleteTaskService(db, idTask);
+    await Notifications.cancelScheduledNotificationAsync(task.startNotificationId);
+    await Notifications.cancelScheduledNotificationAsync(task.endNotificationId);
+    await Notifications.cancelScheduledNotificationAsync(task.startReminderId);
+    await Notifications.cancelScheduledNotificationAsync(task.endReminderId);
+    await deleteTaskService(db, task.idTask);
     if(view === "today") dispatch(getTasksTodayAction(db));
     else if(view === "week") dispatch(getTasksWeekAction(db, startDate, endDate))
 }
 
-export function Task({task, view, db, startDate, endDate, deleteSetter} : Props) {
+export function TaskCard({task, view, db, startDate, endDate, deleteSetter} : Props) {
     const colors = useThemeColors();
     const idTask = task.idTask;
     const date = task.taskDate;
@@ -75,7 +80,7 @@ export function Task({task, view, db, startDate, endDate, deleteSetter} : Props)
                                 if(view==='create_plan') {
                                     if(!deleteSetter) return  
                                     deleteSetter(task)
-                                }else handleDelete(idTask, db, view, dispatch, startDate, endDate)
+                                }else handleDelete(task, db, view, dispatch, startDate, endDate)
                                 
                             }}/>
                     </Row> : 

@@ -1,8 +1,6 @@
 import { ScrollView, StyleSheet, TextProps, View } from "react-native";
 import RouterView from "../router-view";
-import { Task } from "@/components/task/Task";
 import { useContext, useEffect, useState } from "react";
-import { task } from "@/constant/types/task";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
@@ -12,19 +10,22 @@ import { useDispatch } from "react-redux";
 import { getTasksTodayAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
 import { SQLiteDatabase } from "expo-sqlite";
-import { router } from "expo-router";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
+import { Task } from "@/constant/types/task";
+import { TaskCard } from "@/components/task/Task";
+import * as Notifications from 'expo-notifications';
+
 
 
 type Props = TextProps & {
-    tasks: task[];
+    tasks: Task[];
     db: SQLiteDatabase | null;
 }
 
 function Contents ({ tasks, db } : Props) {
     return (
         <View>
-            {tasks.map(task => <Task key={task.idTask} task={task} view="today" startDate="" endDate="" db={db} /> )} 
+            {tasks.map(task => <TaskCard key={task.idTask} task={task} view="today" startDate="" endDate="" db={db} /> )} 
         </View>
     )
 }
@@ -34,12 +35,12 @@ export default function TodayTask () {
     const dispatch = useDispatch()
     const db = useContext(DatabaseContext)
     const { setTasks, filteredTasks, toggleCompleted } = useStatusHeader()
-    const tasks : task[] = useAppSelector(state => state.tasks.todaysTasks)
+    const tasks : Task[] = useAppSelector(state => state.tasks.todaysTasks)
     const [ refresh, setRefresh ] = useState<number>(0)
 
     useEffect(() => {
         if(!db) return;
-        dispatch<any>(getTasksTodayAction(db));
+        dispatch<any>(getTasksTodayAction(db));    
     }, [])
 
     useEffect(() => {

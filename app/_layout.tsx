@@ -1,7 +1,7 @@
 
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { Provider } from "react-redux";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { store } from "@/redux/store";

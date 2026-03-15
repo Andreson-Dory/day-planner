@@ -4,7 +4,7 @@
     "slug": "day-planner",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/add.png",
+    "icon": "./assets/images/day-planner.png",
     "scheme": "dayplanner",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

@@ -8,7 +8,7 @@ export function Header() {
       <View style={styles.titleContainer}>
         <Image
           source={require("@/assets/images/Settings.png")}
-          style={{ width: 22, height: 22 }}
+          style={[{ width: 25, height: 25 }, styles.image]}
         />
 
         <GradientText text="DAY PLANNER" style={styles.title} />
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     gap: 15,
   },
   userContainer: {
@@ -40,11 +40,15 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   titleContainer: {
-    gap: 30,
+    gap: 10,
+    marginBottom: -16
   },
   title: {
-    fontSize: 30,
+    fontSize: 40,
     lineHeight: 36,
     fontWeight: "bold",
   },
+  image: {
+    paddingTop: -25
+  }
 });

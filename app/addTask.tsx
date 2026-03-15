@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import { scheduleTaskNotifications } from "@/lib/notifications";
 
 export default function AddTask() {
     const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate?: string, endDate?: string }>();
@@ -49,13 +50,21 @@ export default function AddTask() {
         };
 
         const newTask = {
-            idTask: 0,
-            taskTitle: title,
-            startTime: startTime,
-            endTime: endTime,
-            taskDate: date
+          idTask: 0,
+          taskTitle: title,
+          startTime: startTime,
+          endTime: endTime,
+          taskDate: date
         };
-        await addTaskService(db, newTask);
+        const notifications = await scheduleTaskNotifications(newTask);
+        await addTaskService(
+          db,
+          newTask,
+          notifications.startId,
+          notifications.endId,
+          notifications.startReminderId,
+          notifications.endReminderId
+        );
         if( view === 'today' ) disptach<any>(getTasksTodayAction(db));
         else if( view === 'week' ) {if(startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate))};
         router.back()        

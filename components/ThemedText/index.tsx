@@ -5,8 +5,7 @@ import { Colors } from "../../constant/Colors";
  const styles = StyleSheet.create(
     { 
         normal : { fontSize: 16, lineHeight: 16 }, 
-        title : { fontSize: 30, lineHeight: 36, fontWeight: "bold" }, 
-        gretting : { fontSize: 26, lineHeight: 26, fontWeight: "bold" }, 
+        gretting : { fontSize: 30, lineHeight: 26, fontWeight: "bold" }, 
         subtitle1 : { fontSize: 24, lineHeight: 24, fontWeight: "600" }, 
         subtitle : { fontSize: 22, lineHeight: 20, fontWeight: "500" }, 
         button : { fontSize: 17, lineHeight: 18, fontWeight: "400" } 

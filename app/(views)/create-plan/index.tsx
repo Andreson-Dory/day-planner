@@ -9,10 +9,10 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { usePlanDraft } from "@/hooks/usePlanDraft";
 import Row from "@/components/row";
 import Col from "@/components/col";
-import { Task } from "@/components/task/Task";
 import { DatabaseContext } from "@/context/databaseContext";
-import { task } from "@/constant/types/task";
 import { addArrayOfTaskService } from "@/services/task-sevices";
+import { TaskCard } from "@/components/task/Task";
+import { CreateTask } from "@/constant/types/task";
 
 const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.SetStateAction<string[]>>) => {
     const dates: Record<string, any> = {};
@@ -20,6 +20,18 @@ const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.Se
     let currentDate = new Date(startDate);
 
     const dayOfCurrentWeek = currentDate.getDay();  
+    if(dayOfCurrentWeek === 0) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        setWeekDays((prev) => [...prev, dateString]);
+        dates[dateString] = {
+            startingDay: true,
+            endingDay: true,
+            color: 'orange',
+            textColor: 'white'
+        }
+        return dates;
+    }
+
     const firstWeekDate = new Date(currentDate);
     const lastWeekDate = new Date(currentDate);
     firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1);
@@ -96,7 +108,7 @@ export default function CreatePlan () {
         setShowMenuModal(false)
     }
 
-    const save = async (datas: Record<string, task[]>) => {
+    const save = async (datas: Record<string, CreateTask[]>) => {
         if(!db) {
             Alert.alert("Warning!", "Not connected to the database!")
             return;
@@ -214,7 +226,7 @@ export default function CreatePlan () {
                                 {openDays.has(index) && (
                                     <View>
                                         {data[day]?.map( task => 
-                                            <Task 
+                                            <TaskCard 
                                                 key={task.idTask} task={task} 
                                                 view="create_plan" 
                                                 startDate={weekDays[0]} 

@@ -7,17 +7,21 @@ export const connectToDatabase = async () => {
 export const createTables = async (db: SQLite.SQLiteDatabase) => {
   const PRAGMA = " PRAGMA JOURNAL_MODE = WAL; PRAGMA synchronous = NORMAL; ";
 
-  const TasksQuery = `
-        CREATE TABLE IF NOT EXISTS TASKS (
-            idTask INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            taskTitle TEXT NOT NULL,
-            startTime TEXT NOT NULL,
-            endTime TEXT NOT NULL,
-            taskDate TEXT NOT NULL,
-            isCompleted INTEGER NOT NULL DEFAULT 0,
-            createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-            updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
-        );
+    const TasksQuery = `
+      CREATE TABLE IF NOT EXISTS TASKS (
+        idTask INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        taskTitle TEXT NOT NULL,
+        startTime TEXT NOT NULL,
+        endTime TEXT NOT NULL,
+        taskDate TEXT NOT NULL,
+        isCompleted INTEGER NOT NULL DEFAULT 0,
+        startNotificationId TEXT,
+        endNotificationId TEXT,
+        startReminderId TEXT,
+        endReminderId TEXT,
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+      );
     `;
 
   const IndexQuery = `
