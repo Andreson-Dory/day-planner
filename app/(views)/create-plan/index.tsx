@@ -13,6 +13,8 @@ import { DatabaseContext } from "@/context/databaseContext";
 import { addArrayOfTaskService } from "@/services/task-sevices";
 import { TaskCard } from "@/components/task/Task";
 import { CreateTask } from "@/constant/types/task";
+import { scheduleTaskNotifications } from "@/services/notification-service";
+import { formatLocalDate } from "@/utils/date";
 
 const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.SetStateAction<string[]>>) => {
     const dates: Record<string, any> = {};
@@ -21,7 +23,7 @@ const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.Se
 
     const dayOfCurrentWeek = currentDate.getDay();  
     if(dayOfCurrentWeek === 0) {
-        const dateString = currentDate.toISOString().split('T')[0];
+        const dateString = formatLocalDate(currentDate);
         setWeekDays((prev) => [...prev, dateString]);
         dates[dateString] = {
             startingDay: true,
@@ -36,10 +38,10 @@ const getDatesInRange = (startDate: string, setWeekDays: React.Dispatch<React.Se
     const lastWeekDate = new Date(currentDate);
     firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1);
     lastWeekDate.setDate(firstWeekDate.getDate() + 6);
-    const endDate = lastWeekDate.toISOString().split('T')[0];
+    const endDate = formatLocalDate(lastWeekDate);
     
     while (currentDate <= lastWeekDate) {
-        const dateString = currentDate.toISOString().split('T')[0];
+        const dateString = formatLocalDate(currentDate);
         setWeekDays((prev) => [...prev, dateString]);
         dates[dateString] = { 
             color: 'orange',
@@ -114,6 +116,18 @@ export default function CreatePlan () {
             return;
        }
        const arrayData = Object.values(datas).flat()
+
+       arrayData.map(async (task) => {
+            const notifications = await scheduleTaskNotifications(task);
+
+            return {
+            ...task,
+            startNotificationId: notifications.startId,
+            endNotificationId: notifications.endId,
+            startReminderId: notifications.startReminderId,
+            endReminderId: notifications.endReminderId
+            };
+        })
        
        await addArrayOfTaskService(db, arrayData)
        resetData()
@@ -139,7 +153,13 @@ export default function CreatePlan () {
             isCompleted: 0,
             startTime: startTime,
             endTime: endTime,
-            taskDate: newTaskDate
+            taskDate: newTaskDate,
+            startNotificationId: '', 
+            endNotificationId: '', 
+            startReminderId: '', 
+            endReminderId: '',
+            createdAt: new Date(),
+            updatedAt: new Date(),
         };
         addTask(newTaskDate, newTask)
         setShowAddModal(!showAddModal)
@@ -156,7 +176,7 @@ export default function CreatePlan () {
     const colors = useThemeColors()
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     const currentDate = new Date();
-    const initialDate = currentDate.toISOString().split('T')[0]
+    const initialDate = formatLocalDate(currentDate);
     const datesPeriod = ( day : string) => {       
         setSelected((prev) => {
             const newArray = Array.from(prev); 
@@ -202,7 +222,7 @@ export default function CreatePlan () {
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <Calendar
                         initialDate={initialDate}
-                        minDate={currentDate.toISOString()}
+                        minDate={initialDate}
                         hideExtraDays={false}
                         showSixWeeks={false}
                         onDayPress={day => {

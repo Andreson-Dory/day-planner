@@ -13,7 +13,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { Task } from "@/constant/types/task";
 import { TaskCard } from "@/components/task/Task";
-import * as Notifications from 'expo-notifications';
+import { formatLocalDate } from "@/utils/date";
 
 
 
@@ -55,7 +55,7 @@ export default function TodayTask () {
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.Content}>
                     <Contents tasks={filteredTasks} db={db} />
                 </ScrollView>
-                <AddButton stl={styles.AddButton} date={new Date().toISOString().split('T')[0]} view="today" />
+                <AddButton stl={styles.AddButton} date={formatLocalDate(new Date())} view="today" />
             </RouterView>
         </View>
     )

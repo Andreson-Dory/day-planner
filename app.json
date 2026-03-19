@@ -13,7 +13,14 @@
       "bundleIdentifier": "com.ando.dayplanner"
     },
     "android": {
-      "package": "com.ando.dayplanner"
+      "package": "com.ando.dayplanner",
+      "permissions": [
+        "SCHEDULE_EXACT_ALARM",
+        "WRITE_EXTERNAL_STORAGE",
+        "WAKE_LOCK",
+        "VIBRATE",
+        "USE_FULL_SCREEN_INTENT"
+      ]
     },
     "plugins": [
       "expo-router",

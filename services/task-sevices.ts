@@ -4,13 +4,9 @@ import { SQLiteDatabase } from 'expo-sqlite';
 
 export const addTaskService = async (
     db: SQLiteDatabase,
-    task: CreateTask,
-    startNotificationId: string,
-    endNotificationId: string,
-    startReminderId?: string,
-    endReminderId?: string
+    task: CreateTask
 ) => {
-    const response = await addTask(db, task, startNotificationId, endNotificationId, startReminderId, endReminderId);
+    const response = await addTask(db, task);
     return response;
 }
 

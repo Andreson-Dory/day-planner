@@ -1,5 +1,5 @@
 import { CreateTask, Task } from "@/constant/types/task";
-import { scheduleTaskNotifications } from "@/lib/notifications";
+import { formatLocalDate } from "@/utils/date";
 import { SQLiteDatabase } from "expo-sqlite";
 
 /**
@@ -12,13 +12,9 @@ import { SQLiteDatabase } from "expo-sqlite";
 
 export const addTask = async (
     db: SQLiteDatabase,
-    task: CreateTask,
-    startNotificationId: string,
-    endNotificationId: string,
-    startReminderId?: string,
-    endReminderId?: string
+    task: CreateTask    
 ) => {
-    const { taskTitle, startTime, endTime, taskDate } = task;
+    const { taskTitle, startTime, endTime, taskDate , startNotificationId, endNotificationId, startReminderId, endReminderId } = task;
     const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?); `;
     const values = [
         taskTitle,
@@ -47,17 +43,16 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
             const statement = await db.prepareAsync(insertQuery);
             try {
                 for (const task of tasks) {
-                    const { taskTitle, startTime, endTime, taskDate } = task;
-                    const notifications = await scheduleTaskNotifications(task);
+                    const { taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId} = task;
                     const values = [
                         taskTitle,
                         startTime,
                         endTime,
                         taskDate,
-                        notifications.startId,
-                        notifications.endId,
-                        notifications.startReminderId || '',
-                        notifications.endReminderId || ''
+                        startNotificationId, 
+                        endNotificationId,
+                        startReminderId,
+                        endReminderId
                     ];
                     await statement.executeAsync(values);
                 }
@@ -74,7 +69,7 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
 
 export const getTasksToday = async ( db: SQLiteDatabase): Promise<Task[]> => {
     const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
+    const todayString = formatLocalDate(today);
     const selectQuery = ` SELECT * FROM TASKS WHERE taskDate = $date; `;
 
     try {
@@ -142,7 +137,7 @@ export const updateTaskNotificationIds = async (
     startReminderId: string,
     endReminderId: string
 ) => {
-    const updateQuery = ` UPDATE TASKS SET startNotificationId=? AND endNotificationId=? startReminderId=? AND endReminderId=? WHERE idTask = ?; `;
+    const updateQuery = ` UPDATE TASKS SET startNotificationId=? AND endNotificationId=? AND startReminderId=? AND endReminderId=? WHERE idTask = ?; `;
     const values =[startNotificationId, endNotificationId, startReminderId, endReminderId, idTask]
     
     try {

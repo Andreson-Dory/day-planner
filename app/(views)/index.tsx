@@ -8,7 +8,7 @@ import { useContext, useEffect } from "react";
 import { DatabaseContext } from "@/context/databaseContext";
 import { getAllTask } from "@/services/task-sevices";
 import { restoreTaskNotifications } from "@/services/notification-service";
-import { createNotificationChannel, requestNotificationPermission } from "@/lib/notifications";
+import { alarmNotificationService } from "@/lib/notifications";
 
 export default function Index() {
   const colors = useThemeColors();
@@ -20,10 +20,10 @@ export default function Index() {
         const tasks = await getAllTask(db);
         await restoreTaskNotifications(db, tasks);
       }
-      requestNotificationPermission();
+      await alarmNotificationService.init();
     }
-    createNotificationChannel();
     initNotifications();
+    
   }, [])
 
   return (

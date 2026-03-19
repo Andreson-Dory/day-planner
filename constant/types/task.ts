@@ -4,6 +4,10 @@ export interface  CreateTask {
     startTime: string;
     endTime: string;
     taskDate: string;
+    startNotificationId: string;
+    endNotificationId: string;
+    startReminderId: string;
+    endReminderId: string;
 }
 
 export interface Task {

@@ -45,6 +45,6 @@ export const Colors = {
         greyWhite : "rgba(212, 216, 221, 0.4)",
         blue: "#005EC9",
         black : "#000000",
-        text: "#FFFFFF"
+        text: "#000000"
     }
 }

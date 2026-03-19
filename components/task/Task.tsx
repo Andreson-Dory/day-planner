@@ -8,8 +8,8 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { deleteTaskService, setFinishedTask } from "@/services/task-sevices";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 import { useDispatch } from "react-redux";
-import * as Notifications from 'expo-notifications'
 import { Task } from "@/constant/types/task";
+import { alarmNotificationService } from "@/lib/notifications";
 
 type Props = TextProps & {
     task: Task
@@ -43,10 +43,8 @@ const handleDelete = async (
     endDate: string,
 ) => {
     if(!db) return;
-    await Notifications.cancelScheduledNotificationAsync(task.startNotificationId);
-    await Notifications.cancelScheduledNotificationAsync(task.endNotificationId);
-    await Notifications.cancelScheduledNotificationAsync(task.startReminderId);
-    await Notifications.cancelScheduledNotificationAsync(task.endReminderId);
+    const ids = [task.startNotificationId, task.startReminderId, task.endNotificationId, task.endReminderId];
+    await alarmNotificationService.cancel(ids);
     await deleteTaskService(db, task.idTask);
     if(view === "today") dispatch(getTasksTodayAction(db));
     else if(view === "week") dispatch(getTasksWeekAction(db, startDate, endDate))
