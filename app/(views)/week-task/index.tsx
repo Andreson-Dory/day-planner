@@ -14,6 +14,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { TaskCard } from "@/components/task/Task";
 import { Task } from "@/constant/types/task";
+import { formatLocalDate, getLocalDayName } from "@/utils/date";
 
 type Props = TextProps & {
     weekTasks: Task[]
@@ -37,7 +38,7 @@ const getDatesInRange = ( { setWeekDays, setWeekDaysCompleted }: getDateProps ) 
     firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1)
     lastWeekDate.setDate(firstWeekDate.getDate() + 6)
     while (firstWeekDate <= lastWeekDate) {
-        const dateString = firstWeekDate.toISOString().split('T')[0]
+        const dateString = formatLocalDate(firstWeekDate)
         setWeekDays((prev) => [...prev, dateString])
         firstWeekDate.setDate(firstWeekDate.getDate() + 1)
     };  
@@ -47,8 +48,7 @@ const getDatesInRange = ( { setWeekDays, setWeekDaysCompleted }: getDateProps ) 
 function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     const [openDays, setOpenDays] = useState<Set<number>>(new Set())
-    const now = new Date().toISOString().split('T')[0]
-
+    const now = formatLocalDate(new Date())
     const toogleDays = (index : number ) => {
         setOpenDays((prev) => {
             const newSet = new Set(prev)
@@ -73,12 +73,12 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
                         return <View key={newIndex} style={styles.content} >
                         <Pressable onPress={() =>toogleDays(newIndex)}>
                             <ThemedText variant="normal" color="light" style={styles.dayText} >
-                                {days[new Date(day).getDay()]}, {day}
+                                {days[getLocalDayName(day)]}, {day}
                             </ThemedText>
                         </Pressable>
                         {openDays.has(newIndex) && (
                             <View>
-                                {weekTasks.filter(task => (new Date(task.taskDate).getDay() === (newIndex === 7 ? 0 : newIndex))).map((taskItem) => (
+                                {weekTasks.filter(task => (task.taskDate === day)).map((taskItem) => (
                                     <TaskCard key={taskItem.idTask} task={taskItem} view="week" startDate={weekDays[0]} endDate={weekDays[6]} db={db} />
                                 ))}
                                 <AddButton stl={styles.AddButton} date={day} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />

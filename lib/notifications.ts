@@ -1,108 +1,96 @@
-import { CreateTask } from '@/constant/types/task'
-import * as Notifications from 'expo-notifications'
-import { Platform } from 'react-native';
+import notifee, {
+    AndroidCategory,
+  AndroidImportance,
+  AndroidVisibility,
+  Trigger,
+  TriggerType,
+} from '@notifee/react-native';
 
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
-})
+class AlarmNotificationService {
+    async init() {
+        notifee.requestPermission();
 
-
-export async function createNotificationChannel() {
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('tasks', {
-      name: 'Task Notifications',
-      importance: Notifications.AndroidImportance.HIGH,
-      sound: 'default',
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    });
-  }
-}
-
-export async function requestNotificationPermission() {
-    const { status } = await Notifications.requestPermissionsAsync()
-    return status === "granted"
-}
-
-export async function scheduleNotification(
-    title: string, 
-    body: string, 
-    date: Date
-): Promise<string> {
-    const id = await Notifications.scheduleNotificationAsync({
-        content: {
-            title,
-            body,
+        await notifee.createChannel({
+            id: 'alarm_v2',
+            name: 'Alarm Channel',
+            importance: AndroidImportance.HIGH,
             sound: 'default',
-            priority: Notifications.AndroidNotificationPriority.HIGH
-        },
-        trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date,
-            channelId: "tasks"
-        },
-    })
+            vibration: true,
+            visibility: AndroidVisibility.PUBLIC
+        });
+    }
 
-    return id
+    async scheduleReminder(date: Date, title: string, body: string) {
+        const trigger = {
+            type: TriggerType.TIMESTAMP,
+            timestamp: date.getTime(),
+            alarmManager: {
+                allowWhileIdle: true,
+                exact: true,
+            },
+        } as Trigger;
+
+        const id = await notifee.createTriggerNotification(
+            {
+                title,
+                body,
+                android: {
+                    channelId: 'alarm_v2',
+                    importance: AndroidImportance.HIGH,
+                    visibility: AndroidVisibility.PUBLIC,
+                    sound: 'default',
+                    vibrationPattern: [1000, 1000, 1000, 1000, 1000, 1000],
+                    category: AndroidCategory.ALARM,
+                    ongoing: true,
+                    autoCancel: false,
+                    pressAction: {
+                        id: 'default',
+                    },
+                    fullScreenAction: {
+                        id: 'default',
+                    },
+                },
+            },
+            trigger
+        );
+
+        return id;
+    }
+
+    async schedule(date: Date, title: string, body: string) {
+        const trigger = {
+            type: TriggerType.TIMESTAMP,
+            timestamp: date.getTime(),
+            alarmManager: {
+                allowWhileIdle: true,
+                exact: true,
+            },
+        } as Trigger;
+
+        const id = await notifee.createTriggerNotification(
+            {
+                title,
+                body,
+                android: {
+                    channelId: 'alarm_v2',
+                    importance: AndroidImportance.HIGH,
+                    visibility: AndroidVisibility.PUBLIC,
+                    sound: 'default',
+                    vibrationPattern: [1000, 1000, 1000, 1000, 1000, 1000],
+                    pressAction: {
+                        id: 'default',
+                    },
+                },
+            },
+            trigger
+        );
+
+        return id;
+    }
+
+    async cancel(notificationIds: string[]) {
+        notifee.cancelAllNotifications(notificationIds);
+    }
 }
 
-export async function scheduleTaskNotifications(task : CreateTask) {
-    const now = new Date();
-    let startId = '';
-    let endId = '';
-    let startReminderId = '';
-    let endReminderId = '';
-
-    const startTime = new Date(task.startTime);
-    const endTime = new Date(task.endTime);
-
-    // Schedule main start notification
-    if (startTime > now) {
-        startId = await scheduleNotification(
-            "Task Started",
-            `${task.taskTitle} is starting now`,
-            startTime
-        );
-    }
-
-    // Schedule reminder 10 min before start
-    const startReminderTime = new Date(startTime.getTime() - 10 * 60 * 1000);
-    if (startReminderTime > now) {
-        startReminderId = await scheduleNotification(
-            "Task Reminder",
-            `${task.taskTitle} will start in 10 minutes`,
-            startReminderTime
-        );
-    }
-
-    // Schedule main end notification
-    if (endTime > now) {
-        endId = await scheduleNotification(
-            "Task Finished",
-            `${task.taskTitle} has ended`,
-            endTime
-        );
-    }
-
-    // Schedule reminder 5 min before end
-    const endReminderTime = new Date(endTime.getTime() - 5 * 60 * 1000);
-    if (endReminderTime > now) {
-        endReminderId = await scheduleNotification(
-            "Task Ending Soon",
-            `${task.taskTitle} will end in 5 minutes`,
-            endReminderTime
-        );
-    }
-
-    return { startId, endId, startReminderId, endReminderId };
-}
-
-export async function cancelNotification(notificationId: string) {
-  await Notifications.cancelScheduledNotificationAsync(notificationId)
-}
+export const alarmNotificationService = new AlarmNotificationService();

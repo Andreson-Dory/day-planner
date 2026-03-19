@@ -12,7 +12,8 @@ import { useDispatch } from "react-redux";
 import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
-import { scheduleTaskNotifications } from "@/lib/notifications";
+import { scheduleTaskNotifications } from "@/services/notification-service";
+import { combineDateAndTime } from "@/utils/date";
 
 export default function AddTask() {
     const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate?: string, endDate?: string }>();
@@ -28,9 +29,9 @@ export default function AddTask() {
     const onChange = (event: any , selectedTime: any) => {
       const currentTime = selectedTime;
       if(status === 'start'){
-        setStartTime(currentTime.toISOString());
+        setStartTime(combineDateAndTime(date, currentTime));
       } else if(status === 'end') {
-        setEndTime(currentTime.toISOString());
+        setEndTime(combineDateAndTime(date, currentTime));
       }  
       setShow(false);
     };
@@ -49,22 +50,26 @@ export default function AddTask() {
             return;
         };
 
-        const newTask = {
+        let newTask = {
           idTask: 0,
           taskTitle: title,
           startTime: startTime,
           endTime: endTime,
-          taskDate: date
+          taskDate: date,
+          startNotificationId: '', 
+          endNotificationId: '', 
+          startReminderId: '', 
+          endReminderId: ''
         };
         const notifications = await scheduleTaskNotifications(newTask);
-        await addTaskService(
-          db,
-          newTask,
-          notifications.startId,
-          notifications.endId,
-          notifications.startReminderId,
-          notifications.endReminderId
-        );
+        newTask = {
+            ...newTask,
+            startNotificationId: notifications.startId, 
+            endNotificationId: notifications.endId, 
+            startReminderId: notifications.startReminderId, 
+            endReminderId: notifications.endReminderId
+        }
+        await addTaskService(db, newTask);
         if( view === 'today' ) disptach<any>(getTasksTodayAction(db));
         else if( view === 'week' ) {if(startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate))};
         router.back()        

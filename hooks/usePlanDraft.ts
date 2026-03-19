@@ -1,13 +1,13 @@
-import { task } from "@/constant/types/task";
+import { Task } from "@/constant/types/task";
 import { useEffect, useState } from "react";
 
 export function usePlanDraft () {
     const [ period, setPeriod ] = useState<Array<string>>([])
-    const [ draft, setDraft ] = useState<Record<string, task[]>>({})
+    const [ draft, setDraft ] = useState<Record<string, Task[]>>({})
     
     useEffect(() => {
         const length = period.length
-        let newDraft: Record<string, task[]> = {}
+        let newDraft: Record<string, Task[]> = {}
         for (let index = 0; index < length; index++) {
             const element = period[index]
             if(draft[element]) newDraft = {...newDraft, [element]: draft[element]}
@@ -16,11 +16,11 @@ export function usePlanDraft () {
         setDraft(newDraft)
     }, [period])
 
-    const addTask = (day: string, task: task) => {
+    const addTask = (day: string, task: Task) => {
         setDraft( prev => ({...prev, [day]: [...prev[day]?? [], task ]}))
     }
 
-    const deleteTask = (task: task) => {
+    const deleteTask = (task: Task) => {
         setDraft( prev => (
             {...prev,
                  [task.taskDate]: [...prev[task.taskDate].filter( current => current.idTask !== task.idTask)]
