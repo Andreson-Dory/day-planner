@@ -19,7 +19,10 @@ const styles = StyleSheet.create({
   appContainer : {
     flex: 1,
     borderRadius: 17,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
     marginHorizontal: 5,
-    marginTop: 15
+    marginTop: 15,
+    marginBottom: 5
   }
 })

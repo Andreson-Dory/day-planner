@@ -77,25 +77,25 @@ export default function AddTask() {
 
     return (
         <View style={{ flex: 1, justifyContent: "center" }}>
-            <RouterView style={styles.container} >
-                <ThemedText variant="subtitle" color="blue" style={{marginBottom: 25}} > Add New Task</ThemedText>
+            <RouterView style={[styles.container, { backgroundColor: colors.modalBg }]} >
+                <ThemedText variant="subtitle" color="modalSpcTxt" style={{marginBottom: 25}} > Add New Task</ThemedText>
                 <Col style= {styles.col}>
                     <Row style={styles.row}>
-                        <ThemedText variant="normal" color="black" > Task title </ThemedText>
-                        <TextInput style={styles.input} value={title} onChangeText={(text) => setTitle(text)} />
+                        <ThemedText variant="normal" color="text" > Task title </ThemedText>
+                        <TextInput style={[styles.input, {backgroundColor: colors.modalInputTxt, color: colors.text, fontSize: 18}]} value={title} onChangeText={(text) => setTitle(text)} />
                     </Row>
                     <Row style={styles.row}>
-                        <ThemedText variant="normal" color="black" > Starting time </ThemedText>
-                        <ThemedText variant="normal" color="black">{startTime ===  "None" ? "None" : new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
+                        <ThemedText variant="normal" color="text" > Starting time </ThemedText>
+                        <ThemedText variant="normal" color="text">{startTime ===  "None" ? "None" : new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
                         <Pressable onPress={() => {setShow(true); setStatus("start")}} >
-                            <ThemedText variant="normal" color="blue" >Pick time</ThemedText>
+                            <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
                         </Pressable>
                     </Row>
                     <Row style={styles.row}>
-                        <ThemedText variant="normal" color="black" > Ending time </ThemedText>
-                        <ThemedText variant="normal" color="black">  {endTime ===  "None" ? "None" : new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
+                        <ThemedText variant="normal" color="text" > Ending time </ThemedText>
+                        <ThemedText variant="normal" color="text">  {endTime ===  "None" ? "None" : new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
                         <Pressable onPress={() => {setShow(true); setStatus("end")}} >
-                            <ThemedText variant="normal" color="blue" >Pick time</ThemedText>
+                            <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
                         </Pressable>
                     </Row>
                 </Col>
@@ -108,7 +108,7 @@ export default function AddTask() {
                     />}
                 <Row>
                     <Pressable onPress={router.back} style={[styles.button, {backgroundColor: colors["greyWhite"]}]}>
-                        <ThemedText variant="button" color="blue" >Cancel</ThemedText>
+                        <ThemedText variant="button" color="modalSpcTxt" >Cancel</ThemedText>
                     </Pressable>
                     <ConfirmButton onPress={handleClick} />
                 </Row>
