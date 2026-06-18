@@ -4,29 +4,53 @@ import { ThemedText } from "../ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Props = TextProps & {
+    type: string;
+    filter: "All" | "Pending" | "Completed";
     onPress: () => void;
-    pressed: boolean;
-    type: "Ongoing" | "Completed";
 }
 
-export default function StatusButton ({ onPress,pressed, type }: Props) {
+export default function StatusButton ({ type, filter, onPress}: Props) {
     const colors = useThemeColors();
-    const colorButton = pressed ? "orange" : "greyWhite";
-    const colorText = pressed ? "light" : "black";
+    const styleButton = {
+        backgroundColor: 'white',
+        textColor: colors.buttonStatHead,
+        borderWidth: 0,
+        borderColor: "rgb(209, 213, 220)"
+    }
+    if(filter === "All" && type === "All") {
+         styleButton.backgroundColor= colors.all;
+         styleButton.textColor= "light";
+         styleButton.borderWidth= 0;
+    }
+    else if(filter === "Pending" && type === "Pending") {
+         styleButton.backgroundColor= colors.pending;
+         styleButton.textColor= "light";
+         styleButton.borderWidth= 0;
+    }
+    else if(filter === "Completed" && type === "Completed") {
+         styleButton.backgroundColor= colors.completed;
+         styleButton.textColor= "light";
+         styleButton.borderWidth= 0;
+    }
+    else {
+         styleButton.backgroundColor= "white";
+         styleButton.textColor= colors.buttonStatHead;
+         styleButton.borderWidth= 1;
+    }
 
     return (
-        <Pressable onPress={onPress} style={[styles.button, {backgroundColor: colors[colorButton]}]}>
-            <ThemedText variant="button" color={colorText} >{type}</ThemedText>
+        <Pressable onPress={onPress} style={[styles.button, {backgroundColor: styleButton.backgroundColor, borderWidth: styleButton.borderWidth, borderColor: styleButton.borderColor}]}>
+            <ThemedText variant="button" color={styleButton.textColor} >{type}</ThemedText>
         </Pressable>
     )
 }
 
 const styles = StyleSheet.create({
     button: {
-        justifyContent: "center",
+        justifyContent: "center",        
         alignItems: "center",
         width: 113,
         height: 32,
-        borderRadius: 10,
+        borderRadius: 40,
     }
 })

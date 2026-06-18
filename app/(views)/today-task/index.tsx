@@ -34,7 +34,7 @@ export default function TodayTask () {
     const colors = useThemeColors()
     const dispatch = useDispatch()
     const db = useContext(DatabaseContext)
-    const { setTasks, filteredTasks, toggleCompleted } = useStatusHeader()
+    const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader()
     const tasks : Task[] = useAppSelector(state => state.tasks.todaysTasks)
     const [ refresh, setRefresh ] = useState<number>(0)
 
@@ -48,10 +48,10 @@ export default function TodayTask () {
     }, [tasks])
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.appBase }}>
+        <View style={{ flex: 1 }}>
             <RouterView>
                 <SubHeader text="Today Task" onPress={() => setRefresh(prev => prev + 1 )} />
-                <StatusHeader toggle={toggleCompleted} />
+                <StatusHeader filter={filter} setFilter={setFilter} />
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.Content}>
                     <Contents tasks={filteredTasks} db={db} />
                 </ScrollView>

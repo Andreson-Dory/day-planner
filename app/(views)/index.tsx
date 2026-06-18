@@ -1,6 +1,5 @@
 import OptionCard from "@/components/optionCard";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 import RouterView from "./router-view";
@@ -32,64 +31,52 @@ export default function Index() {
         <Link href="/(views)/today-task" asChild>
           <Pressable
             android_ripple={{
-              color: colors.greenGradientStart,
-              foreground: true,
+              color: colors.emeraldGradientStart
             }}
             style={{ borderRadius: 19 }}
           >
-            <LinearGradient
-              colors={[colors.greenGradientStart, colors.greenGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.gradient}
-            >
-              <OptionCard
-                subtitle="TODAY'S TASK LIST"
-                image={require("@/assets/images/today-tasks.png")}
-              />
-            </LinearGradient>
+            <OptionCard
+              subtitle="TODAY'S TASK LIST"
+              description="View and manage all your tasks for today"
+              colorGradientStart={colors.emeraldGradientStart}
+              colorGradientEnd={colors.emeraldGradientEnd}
+              iconColor={colors.todayTaskIcon}
+              image={require("@/assets/images/today-tasks.png")}
+            />
           </Pressable>
         </Link>
         <Link href="/(views)/week-task" asChild>
           <Pressable
             android_ripple={{
-              color: colors.blueGradientStart,
-              foreground: true,
+              color: colors.blueGradientStart
             }}
             style={{ borderRadius: 19 }}
           >
-            <LinearGradient
-              colors={[colors.blueGradientStart, colors.blueGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradient}
-            >
-              <OptionCard
-                subtitle="WEEK'S TASK LIST"
-                image={require("@/assets/images/week-tasks.png")}
-              />
-            </LinearGradient>
+            <OptionCard
+              subtitle="WEEK'S TASK LIST"
+              description="Plan and organize your entire week ahead"
+              colorGradientStart={colors.blueGradientStart}
+              colorGradientEnd={colors.blueGradientEnd}
+              iconColor={colors.weekTaskIcon}                
+              image={require("@/assets/images/week-tasks.png")}
+            />
           </Pressable>
         </Link>
         <Link href="/(views)/create-plan" asChild>
           <Pressable
             android_ripple={{
-              color: colors.orangeGradientStart,
-              foreground: true,
+              color: colors.orangeGradientStart
             }}
             style={{ borderRadius: 19 }}
           >
-            <LinearGradient
-              colors={[colors.orangeGradientStart, colors.orangeGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.gradient}
-            >
-              <OptionCard
-                subtitle="CREATE PLAN"
-                image={require("@/assets/images/create.png")}
-              />
-            </LinearGradient>
+            <OptionCard
+              subtitle="CREATE PLAN"
+              description="Add and create new tasks to your planner"
+              colorGradientStart={colors.orangeGradientStart}
+              colorGradientEnd={colors.orangeGradientEnd}
+              iconColor={colors.createPlanTaskIcon}
+              image={require("@/assets/images/create.png")}
+            />
           </Pressable>
         </Link>
       </RouterView>
@@ -104,8 +91,5 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     gap: 30,
     alignItems: "center",
-  },
-  gradient: {
-    borderRadius: 19,
-  },
+  }
 });

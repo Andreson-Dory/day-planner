@@ -14,11 +14,11 @@ type Props = {
 export function SubHeader ({ text, onPress, ButtonRef } : Props ) {
     const colors = useThemeColors();
     return (
-        <Row style={[ styles.subHeader, { backgroundColor: colors.bluelight } ]}>
+        <Row style={[ styles.subHeader, { backgroundColor: colors.subHeader } ]}>
             <Pressable onPress={router.back}>
                 <Image source={require("@/assets/images/back.png")} style={styles.img} />
             </Pressable>
-            <ThemedText variant="subtitle" color="light" >{text}</ThemedText>
+            <ThemedText variant="subtitle" color="subHeaderTxt" >{text}</ThemedText>
             { text === 'Create Plan' ? 
             <Pressable onPress={onPress} ref={ButtonRef}>
                 <Image source={require("@/assets/images/menu.png")} style={styles.img} />
