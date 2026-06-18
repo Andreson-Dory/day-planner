@@ -174,7 +174,6 @@ export default function CreatePlan () {
     const [refresh, setRefresh] = useState<number>(0)
     const db = useContext(DatabaseContext)
     const colors = useThemeColors()
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     const currentDate = new Date();
     const initialDate = formatLocalDate(currentDate);
     const datesPeriod = ( day : string) => {       
@@ -215,7 +214,7 @@ export default function CreatePlan () {
     }, [weekDays])
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.appBase }}>
+        <View style={{ flex: 1 }}>
             <RouterView>
                 <SubHeader text="Create Plan" onPress={showModal} ButtonRef={ButtonRef} />
                 {/*             Main view of the component               */}
@@ -233,14 +232,19 @@ export default function CreatePlan () {
                             [initialDate] : {today: true, textColor: 'blue'},
                             ...markedDate
                         }}
-                         style={styles.calendar}
+                        style={styles.calendar}
                     />
                     <View style={styles.subContent}>
                         {weekDays.map((day, index) => (
                             <View key={index} style={styles.content}>
                                 <Pressable onPress={() => toogleDays(index)}>
                                     <ThemedText variant="normal" color="light" style={styles.dayText} >
-                                        {days[new Date(day).getDay()]}, {day}
+                                        {new Date(day + 'T00:00:00').toLocaleDateString('en-US', { 
+                                            weekday: 'long', 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        })}
                                     </ThemedText>
                                 </Pressable>
                                 {openDays.has(index) && (
@@ -275,27 +279,28 @@ export default function CreatePlan () {
                     animationType="slide"
                     transparent={true}
                     visible={showAddModal}
-                    onRequestClose={() => setShowAddModal(!showAddModal)}>
+                    onRequestClose={() => setShowAddModal(!showAddModal)}
+                >
                     <View style={styles.centeredView}>
-                      <View style={styles.addModalView}>
-                         <ThemedText variant="subtitle" color="blue" style={{marginBottom: 25}} > Add New Task</ThemedText>
+                      <View style={[styles.addModalView, {backgroundColor: colors.modalBg}]}>
+                         <ThemedText variant="subtitle" color="modalSpcTxt" style={{marginBottom: 25}} > Add New Task</ThemedText>
                         <Col style= {styles.col}>
                             <Row style={styles.row}>
-                                <ThemedText variant="normal" color="black" > Task title </ThemedText>
-                                <TextInput style={styles.input} value={title} onChangeText={(text) => setTitle(text)} />
+                                <ThemedText variant="normal" color="text" > Task title </ThemedText>
+                                <TextInput style={[styles.input, {backgroundColor: colors.modalInputTxt, color: colors.text, fontSize: 18}]} value={title} onChangeText={(text) => setTitle(text)} />
                             </Row>
                             <Row style={styles.row}>
-                                <ThemedText variant="normal" color="black" > Starting time </ThemedText>
-                                <ThemedText variant="normal" color="black">{startTime ===  "None" ? "None" : new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
+                                <ThemedText variant="normal" color="text" > Starting time </ThemedText>
+                                <ThemedText variant="normal" color="text">{startTime ===  "None" ? "None" : new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
                                 <Pressable onPress={() => {setShow(true); setStatus("start")}} >
-                                    <ThemedText variant="normal" color="blue" >Pick time</ThemedText>
+                                    <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
                                 </Pressable>
                             </Row>
                             <Row style={styles.row}>
-                                <ThemedText variant="normal" color="black" > Ending time </ThemedText>
-                                <ThemedText variant="normal" color="black">  {endTime ===  "None" ? "None" : new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
+                                <ThemedText variant="normal" color="text" > Ending time </ThemedText>
+                                <ThemedText variant="normal" color="text">  {endTime ===  "None" ? "None" : new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
                                 <Pressable onPress={() => {setShow(true); setStatus("end")}} >
-                                    <ThemedText variant="normal" color="blue" >Pick time</ThemedText>
+                                    <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
                                 </Pressable>
                             </Row>
                         </Col>
@@ -308,10 +313,10 @@ export default function CreatePlan () {
                             />}
                         <Row>
                             <Pressable onPress={() => setShowAddModal(!showAddModal)} style={[styles.addModalButton, {backgroundColor: colors["greyWhite"]}]}>
-                                <ThemedText variant="button" color="blue" >Cancel</ThemedText>
+                                <ThemedText variant="button" color="modalSpcTxt" >Cancel</ThemedText>
                             </Pressable>
                             <Pressable onPress={handleClick} style={[styles.addModalButton, {backgroundColor: colors["greyWhite"]}]}>
-                                <ThemedText variant="button" color="blue" >Confirm</ThemedText>
+                                <ThemedText variant="button" color="modalSpcTxt" >Confirm</ThemedText>
                             </Pressable>
                         </Row>
                       </View>
@@ -327,13 +332,13 @@ export default function CreatePlan () {
                         <Pressable style={styles.backdrop} onPress={() => setShowMenuModal(!showMenuModal)} />
                         <View style={[styles.popup,{...position, backgroundColor: colors.light}]} >
                             <Pressable onPress={() => {save(data)}} style={styles.menuButton}>
-                                <ThemedText variant="normal" color="black" style={{textAlign: "center"}} >Save</ThemedText>
+                                <ThemedText variant="normal" color="text" style={{textAlign: "center"}} >Save</ThemedText>
                             </Pressable>
                             <Pressable onPress={funcRefresh} style={styles.menuButton} >
-                                <ThemedText variant="normal" color="black" style={{textAlign: "center"}} >Reload</ThemedText>
+                                <ThemedText variant="normal" color="text" style={{textAlign: "center"}} >Reload</ThemedText>
                             </Pressable>
                             <Pressable onPress={resetData} style={styles.menuButton} >
-                                <ThemedText variant="normal" color="black" style={{textAlign: "center"}} >Reset</ThemedText>
+                                <ThemedText variant="normal" color="text" style={{textAlign: "center"}} >Reset</ThemedText>
                             </Pressable>
                         </View>
                 </Modal>
@@ -355,18 +360,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#49a6f8b8",
         width: "100%",
         textAlign: "center",
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: 15,
+        borderRadius: 15,
     },
     calendar: {
         width: '95%',
         alignSelf: 'center',
         margin: 10,
-        borderRadius: 12,
         borderColor: '#49a6f8b8',
-        elevation: 4,        
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
     },
     subContent: {
         marginBottom: 10

@@ -6,7 +6,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { useDispatch } from "react-redux";
 import { getTasksWeekAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
@@ -14,13 +13,13 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { TaskCard } from "@/components/task/Task";
 import { Task } from "@/constant/types/task";
-import { formatLocalDate, getLocalDayName } from "@/utils/date";
+import { formatLocalDate } from "@/utils/date";
 
 type Props = TextProps & {
     weekTasks: Task[]
     weekDays: string[]
     db: SQLiteDatabase | null
-    isCompleted: boolean
+    filter: string
 }
 
 type getDateProps = {
@@ -45,8 +44,7 @@ const getDatesInRange = ( { setWeekDays, setWeekDaysCompleted }: getDateProps ) 
     setWeekDaysCompleted(true)
 }
 
-function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+function Contents ({ weekTasks, weekDays, db, filter } : Props) {
     const [openDays, setOpenDays] = useState<Set<number>>(new Set())
     const now = formatLocalDate(new Date())
     const toogleDays = (index : number ) => {
@@ -65,7 +63,7 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
             <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
                 {weekDays.map((day, index) => 
                     { 
-                        const shouldRender = isCompleted ? day <= now : day >= now;
+                        const shouldRender = filter === 'Completed' ? day <= now : day >= now;
                         const newIndex = index + 1;
 
                         if(!shouldRender) return null
@@ -73,7 +71,12 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
                         return <View key={newIndex} style={styles.content} >
                         <Pressable onPress={() =>toogleDays(newIndex)}>
                             <ThemedText variant="normal" color="light" style={styles.dayText} >
-                                {days[getLocalDayName(day)]}, {day}
+                                {new Date(day + 'T00:00:00').toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}
                             </ThemedText>
                         </Pressable>
                         {openDays.has(newIndex) && (
@@ -81,7 +84,7 @@ function Contents ({ weekTasks, weekDays, db, isCompleted } : Props) {
                                 {weekTasks.filter(task => (task.taskDate === day)).map((taskItem) => (
                                     <TaskCard key={taskItem.idTask} task={taskItem} view="week" startDate={weekDays[0]} endDate={weekDays[6]} db={db} />
                                 ))}
-                                <AddButton stl={styles.AddButton} date={day} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />
+                                {filter !== 'Completed' && <AddButton stl={styles.AddButton} date={day} view="week" startDate={weekDays[0]} endDate={weekDays[6]} />}
                             </View>
                         )}
                     </View> 
@@ -94,8 +97,7 @@ export default function WeekTask () {
     const [weekDays, setWeekDays] = useState<string[]>([])
     const [weekDaysCompleted, setWeekDaysCompleted] = useState<boolean>(false)
     const db = useContext(DatabaseContext)
-    const { isCompleted, setTasks, filteredTasks, toggleCompleted } = useStatusHeader()
-    const colors = useThemeColors()
+    const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader()
     const dispatch = useDispatch()
     const tasks = useAppSelector<Task[]>(state => state.tasks.weekTasks)
     const [ refresh, setRefresh ] = useState<number>(0)
@@ -116,11 +118,11 @@ export default function WeekTask () {
     }, [tasks])
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.appBase }}>
+        <View style={{ flex: 1 }}>
             <RouterView>
                 <SubHeader text="Week Task" onPress={() => setRefresh(prev => prev + 1 )} />
-                <StatusHeader toggle={toggleCompleted}/>
-                <Contents weekTasks={filteredTasks} weekDays={weekDays} db={db} isCompleted={isCompleted} />
+                <StatusHeader filter={filter} setFilter={setFilter} />
+                <Contents weekTasks={filteredTasks} weekDays={weekDays} db={db} filter={filter} />
             </RouterView>
         </View>
     )
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#49a6f8b8",
         width: "100%",
         textAlign: "center",
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: 15,
+        borderRadius: 15,
     }
 });
