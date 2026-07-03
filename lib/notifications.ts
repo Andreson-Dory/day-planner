@@ -1,96 +1,88 @@
 import notifee, {
-    AndroidCategory,
+  AndroidCategory,
   AndroidImportance,
   AndroidVisibility,
   Trigger,
   TriggerType,
-} from '@notifee/react-native';
+  EventDetail,
+  EventType,
+} from "@notifee/react-native";
 
 class AlarmNotificationService {
-    async init() {
-        notifee.requestPermission();
+  private readonly CHANNEL_ID = "alarm_v3";
 
-        await notifee.createChannel({
-            id: 'alarm_v2',
-            name: 'Alarm Channel',
-            importance: AndroidImportance.HIGH,
-            sound: 'default',
-            vibration: true,
-            visibility: AndroidVisibility.PUBLIC
-        });
-    }
+  async init() {
+    await notifee.requestPermission();
 
-    async scheduleReminder(date: Date, title: string, body: string) {
-        const trigger = {
-            type: TriggerType.TIMESTAMP,
-            timestamp: date.getTime(),
-            alarmManager: {
-                allowWhileIdle: true,
-                exact: true,
-            },
-        } as Trigger;
+    await notifee.createChannel({
+      id: this.CHANNEL_ID,
+      name: "Task Alarms",
+      importance: AndroidImportance.HIGH,
+      sound: "default",
+      vibration: true,
+      vibrationPattern: [1000, 1000, 1000, 1000],
+      visibility: AndroidVisibility.PUBLIC,
+      bypassDnd: true,
+    });
+  }
 
-        const id = await notifee.createTriggerNotification(
-            {
-                title,
-                body,
-                android: {
-                    channelId: 'alarm_v2',
-                    importance: AndroidImportance.HIGH,
-                    visibility: AndroidVisibility.PUBLIC,
-                    sound: 'default',
-                    vibrationPattern: [1000, 1000, 1000, 1000, 1000, 1000],
-                    category: AndroidCategory.ALARM,
-                    ongoing: true,
-                    autoCancel: false,
-                    pressAction: {
-                        id: 'default',
-                    },
-                    fullScreenAction: {
-                        id: 'default',
-                    },
-                },
-            },
-            trigger
-        );
+  async scheduleReminder(date: Date, title: string, body: string) {
+    const trigger: Trigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: date.getTime(),
+      alarmManager: {
+        allowWhileIdle: true,
+      },
+    };
 
-        return id;
-    }
+    return await notifee.createTriggerNotification(
+      {
+        title,
+        body,
+        android: {
+          channelId: this.CHANNEL_ID,
+          importance: AndroidImportance.DEFAULT,
+        },
+      },
+      trigger,
+    );
+  }
 
-    async schedule(date: Date, title: string, body: string) {
-        const trigger = {
-            type: TriggerType.TIMESTAMP,
-            timestamp: date.getTime(),
-            alarmManager: {
-                allowWhileIdle: true,
-                exact: true,
-            },
-        } as Trigger;
+  async schedule(date: Date, title: string, body: string) {
+    const trigger: Trigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: date.getTime(),
+      alarmManager: {
+        allowWhileIdle: true, // Handle if the phone is in idle
+      },
+    };
 
-        const id = await notifee.createTriggerNotification(
-            {
-                title,
-                body,
-                android: {
-                    channelId: 'alarm_v2',
-                    importance: AndroidImportance.HIGH,
-                    visibility: AndroidVisibility.PUBLIC,
-                    sound: 'default',
-                    vibrationPattern: [1000, 1000, 1000, 1000, 1000, 1000],
-                    pressAction: {
-                        id: 'default',
-                    },
-                },
-            },
-            trigger
-        );
+    return await notifee.createTriggerNotification(
+      {
+        title,
+        body,
+        android: {
+          channelId: this.CHANNEL_ID,
+          importance: AndroidImportance.HIGH,
+          visibility: AndroidVisibility.PUBLIC,
+          category: AndroidCategory.ALARM,
+          ongoing: true,
+          autoCancel: false,
+          pressAction: {
+            id: "default",
+          },
+          fullScreenAction: {
+            id: "default",
+          },
+        },
+      },
+      trigger,
+    );
+  }
 
-        return id;
-    }
-
-    async cancel(notificationIds: string[]) {
-        notifee.cancelAllNotifications(notificationIds);
-    }
+  async cancel(notificationIds: string[]) {
+    await notifee.cancelAllNotifications(notificationIds);
+  }
 }
 
 export const alarmNotificationService = new AlarmNotificationService();
