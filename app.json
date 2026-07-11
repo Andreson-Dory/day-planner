@@ -24,11 +24,7 @@
         "USE_EXACT_ALARM"
       ]
     },
-    "plugins": [
-      "expo-router",
-      "expo-sqlite",
-      "@react-native-community/datetimepicker"
-    ],
+    "plugins": ["expo-router", "expo-sqlite", "@react-native-community/datetimepicker"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

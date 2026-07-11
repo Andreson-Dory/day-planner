@@ -11,19 +11,18 @@ import { alarmNotificationService } from "@/lib/notifications";
 
 export default function Index() {
   const colors = useThemeColors();
-  const db = useContext(DatabaseContext)
+  const db = useContext(DatabaseContext);
 
   useEffect(() => {
     async function initNotifications() {
-      if(db){
+      if (db) {
         const tasks = await getAllTask(db);
         await restoreTaskNotifications(db, tasks);
       }
       await alarmNotificationService.init();
     }
     initNotifications();
-    
-  }, [])
+  }, []);
 
   return (
     <>
@@ -31,7 +30,7 @@ export default function Index() {
         <Link href="/(views)/today-task" asChild>
           <Pressable
             android_ripple={{
-              color: colors.emeraldGradientStart
+              color: colors.emeraldGradientStart,
             }}
             style={{ borderRadius: 19 }}
           >
@@ -48,7 +47,7 @@ export default function Index() {
         <Link href="/(views)/week-task" asChild>
           <Pressable
             android_ripple={{
-              color: colors.blueGradientStart
+              color: colors.blueGradientStart,
             }}
             style={{ borderRadius: 19 }}
           >
@@ -57,7 +56,7 @@ export default function Index() {
               description="Plan and organize your entire week ahead"
               colorGradientStart={colors.blueGradientStart}
               colorGradientEnd={colors.blueGradientEnd}
-              iconColor={colors.weekTaskIcon}                
+              iconColor={colors.weekTaskIcon}
               image={require("@/assets/images/week-tasks.png")}
             />
           </Pressable>
@@ -65,7 +64,7 @@ export default function Index() {
         <Link href="/(views)/create-plan" asChild>
           <Pressable
             android_ripple={{
-              color: colors.orangeGradientStart
+              color: colors.orangeGradientStart,
             }}
             style={{ borderRadius: 19 }}
           >
@@ -91,5 +90,5 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     gap: 30,
     alignItems: "center",
-  }
+  },
 });

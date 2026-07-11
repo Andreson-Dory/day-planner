@@ -7,7 +7,7 @@ export const connectToDatabase = async () => {
 export const createTables = async (db: SQLite.SQLiteDatabase) => {
   const PRAGMA = " PRAGMA JOURNAL_MODE = WAL; PRAGMA synchronous = NORMAL; ";
 
-    const TasksQuery = `
+  const TasksQuery = `
       CREATE TABLE IF NOT EXISTS TASKS (
         idTask INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         taskTitle TEXT NOT NULL,

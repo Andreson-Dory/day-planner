@@ -9,23 +9,11 @@ type GradientTextProps = {
 };
 
 export function GradientText({ text, style }: GradientTextProps) {
-    const color =useThemeColors();
+  const color = useThemeColors();
   return (
-    <MaskedView
-      maskElement={
-        <Text style={[style, styles.maskText]}>
-          {text}
-        </Text>
-      }
-    >
-      <LinearGradient
-        colors={["#ffffff", color.title]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Text style={[style, styles.hiddenText]}>
-          {text}
-        </Text>
+    <MaskedView maskElement={<Text style={[style, styles.maskText]}>{text}</Text>}>
+      <LinearGradient colors={["#ffffff", color.title]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+        <Text style={[style, styles.hiddenText]}>{text}</Text>
       </LinearGradient>
     </MaskedView>
   );

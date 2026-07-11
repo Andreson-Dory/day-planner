@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useContext, useState } from "react";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -14,128 +14,226 @@ import { DatabaseContext } from "@/context/databaseContext";
 import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 import { scheduleTaskNotifications } from "@/services/notification-service";
 import { combineDateAndTime } from "@/utils/date";
+import Toast from "react-native-toast-message";
 
 export default function AddTask() {
-    const { date, view, startDate, endDate } = useLocalSearchParams<{ date: string, view: string, startDate?: string, endDate?: string }>();
-    const colors = useThemeColors();
-    const db = useContext(DatabaseContext);
-    const disptach = useDispatch();
-    const [ show, setShow ] = useState(false);
-    const [ status, setStatus ] = useState("");
-    const [ title, setTitle ] = useState<string>("");
-    const [ startTime, setStartTime ] = useState<string>("None");
-    const [ endTime, setEndTime ] = useState<string>("None");
+  const { date, view, startDate, endDate } = useLocalSearchParams<{
+    date: string;
+    view: string;
+    startDate?: string;
+    endDate?: string;
+  }>();
+  const colors = useThemeColors();
+  const db = useContext(DatabaseContext);
+  const disptach = useDispatch();
+  const [show, setShow] = useState(false);
+  const [status, setStatus] = useState("");
+  const [title, setTitle] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("None");
+  const [endTime, setEndTime] = useState<string>("None");
 
-    const onChange = (event: any , selectedTime: any) => {
-      const currentTime = selectedTime;
-      if(status === 'start'){
-        setStartTime(combineDateAndTime(date, currentTime));
-      } else if(status === 'end') {
-        setEndTime(combineDateAndTime(date, currentTime));
-      }  
-      setShow(false);
-    };
+  const onChange = (event: any, selectedTime: any) => {
+    const currentTime = selectedTime;
+    if (status === "start") {
+      setStartTime(combineDateAndTime(date, currentTime));
+    } else if (status === "end") {
+      setEndTime(combineDateAndTime(date, currentTime));
+    }
+    setShow(false);
+  };
 
-    const handleClick = async () => {
-        if(title === ""){
-            Alert.alert("Warning!", "Please enter task title");
-            return;
-        };
-        if( startTime === 'None' || endTime === "None" || new Date(startTime) >= new Date(endTime) ) {
-            Alert.alert("Warning!", "Please enter valid time");
-            return;
-        }
-        if(!db) {
-            Alert.alert("Warning!", "Not connected to the database!")
-            return;
-        };
-
-        let newTask = {
-          idTask: 0,
-          taskTitle: title,
-          startTime: startTime,
-          endTime: endTime,
-          taskDate: date,
-          startNotificationId: '', 
-          endNotificationId: '', 
-          startReminderId: '', 
-          endReminderId: ''
-        };
-        const notifications = await scheduleTaskNotifications(newTask);
-        newTask = {
-            ...newTask,
-            startNotificationId: notifications.startId, 
-            endNotificationId: notifications.endId, 
-            startReminderId: notifications.startReminderId, 
-            endReminderId: notifications.endReminderId
-        }
-        await addTaskService(db, newTask);
-        if( view === 'today' ) disptach<any>(getTasksTodayAction(db));
-        else if( view === 'week' ) {if(startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate))};
-        router.back()        
+  const handleClick = async () => {
+    if (title === "") {
+      Toast.show({
+        type: "error",
+        text1: "Warning",
+        text2: "Please enter task title",
+        position: "top",
+      });
+      return;
+    }
+    if (startTime === "None" || endTime === "None" || new Date(startTime) >= new Date(endTime)) {
+      Toast.show({
+        type: "error",
+        text1: "Warning",
+        text2: "Please enter valid time",
+        position: "top",
+      });
+      return;
+    }
+    if (!db) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Not connected to the database!",
+        position: "top",
+      });
+      return;
     }
 
-    return (
-        <View style={{ flex: 1, justifyContent: "center" }}>
-            <RouterView style={[styles.container, { backgroundColor: colors.modalBg }]} >
-                <ThemedText variant="subtitle" color="modalSpcTxt" style={{marginBottom: 25}} > Add New Task</ThemedText>
-                <Col style= {styles.col}>
-                    <Row style={styles.row}>
-                        <ThemedText variant="normal" color="text" > Task title </ThemedText>
-                        <TextInput style={[styles.input, {backgroundColor: colors.modalInputTxt, color: colors.text, fontSize: 18}]} value={title} onChangeText={(text) => setTitle(text)} />
-                    </Row>
-                    <Row style={styles.row}>
-                        <ThemedText variant="normal" color="text" > Starting time </ThemedText>
-                        <ThemedText variant="normal" color="text">{startTime ===  "None" ? "None" : new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
-                        <Pressable onPress={() => {setShow(true); setStatus("start")}} >
-                            <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
-                        </Pressable>
-                    </Row>
-                    <Row style={styles.row}>
-                        <ThemedText variant="normal" color="text" > Ending time </ThemedText>
-                        <ThemedText variant="normal" color="text">  {endTime ===  "None" ? "None" : new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</ThemedText>
-                        <Pressable onPress={() => {setShow(true); setStatus("end")}} >
-                            <ThemedText variant="normal" color="modalSpcTxt" >Pick time</ThemedText>
-                        </Pressable>
-                    </Row>
-                </Col>
-                {show && <DateTimePicker 
-                        testID="dateTimePicker"
-                        mode="time" 
-                        value={new Date()} 
-                        display="default"
-                        onChange={onChange}
-                    />}
-                <Row>
-                    <Pressable onPress={router.back} style={[styles.button, {backgroundColor: colors["greyWhite"]}]}>
-                        <ThemedText variant="button" color="modalSpcTxt" >Cancel</ThemedText>
-                    </Pressable>
-                    <ConfirmButton onPress={handleClick} />
-                </Row>
-            </RouterView>
-        </View>
-    )
+    let newTask = {
+      idTask: 0,
+      taskTitle: title,
+      startTime: startTime,
+      endTime: endTime,
+      taskDate: date,
+      startNotificationId: "",
+      endNotificationId: "",
+      startReminderId: "",
+      endReminderId: "",
+    };
+    const notifications = await scheduleTaskNotifications(newTask);
+    newTask = {
+      ...newTask,
+      startNotificationId: notifications.startId,
+      endNotificationId: notifications.endId,
+      startReminderId: notifications.startReminderId,
+      endReminderId: notifications.endReminderId,
+    };
+    await addTaskService(db, newTask)
+      .then(() => {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Task added with success with the notifications reminders",
+          position: "top",
+        });
+      })
+      .catch(() => {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Error adding task",
+          position: "top",
+        });
+      });
+    if (view === "today") disptach<any>(getTasksTodayAction(db));
+    else if (view === "week") {
+      if (startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate));
+    }
+    router.back();
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: "center" }}>
+      <RouterView style={[styles.container, { backgroundColor: colors.modalBg }]}>
+        <ThemedText variant="subtitle" color="modalSpcTxt" style={{ marginBottom: 25 }}>
+          {" "}
+          Add New Task
+        </ThemedText>
+        <Col style={styles.col}>
+          <Row style={styles.row}>
+            <ThemedText variant="normal" color="text">
+              {" "}
+              Task title{" "}
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.modalInputTxt,
+                  color: colors.text,
+                  fontSize: 18,
+                },
+              ]}
+              value={title}
+              onChangeText={(text) => setTitle(text)}
+            />
+          </Row>
+          <Row style={styles.row}>
+            <ThemedText variant="normal" color="text">
+              {" "}
+              Starting time{" "}
+            </ThemedText>
+            <ThemedText variant="normal" color="text">
+              {startTime === "None"
+                ? "None"
+                : new Date(startTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+            </ThemedText>
+            <Pressable
+              onPress={() => {
+                setShow(true);
+                setStatus("start");
+              }}
+            >
+              <ThemedText variant="normal" color="modalSpcTxt">
+                Pick time
+              </ThemedText>
+            </Pressable>
+          </Row>
+          <Row style={styles.row}>
+            <ThemedText variant="normal" color="text">
+              {" "}
+              Ending time{" "}
+            </ThemedText>
+            <ThemedText variant="normal" color="text">
+              {" "}
+              {endTime === "None"
+                ? "None"
+                : new Date(endTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+            </ThemedText>
+            <Pressable
+              onPress={() => {
+                setShow(true);
+                setStatus("end");
+              }}
+            >
+              <ThemedText variant="normal" color="modalSpcTxt">
+                Pick time
+              </ThemedText>
+            </Pressable>
+          </Row>
+        </Col>
+        {show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            mode="time"
+            value={new Date()}
+            display="default"
+            onChange={onChange}
+          />
+        )}
+        <Row>
+          <Pressable
+            onPress={router.back}
+            style={[styles.button, { backgroundColor: colors["greyWhite"] }]}
+          >
+            <ThemedText variant="button" color="modalSpcTxt">
+              Cancel
+            </ThemedText>
+          </Pressable>
+          <ConfirmButton onPress={handleClick} />
+        </Row>
+      </RouterView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 0,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 20,
     marginTop: 15,
     borderRadius: 17,
     marginHorizontal: 15,
-    backgroundColor: 'rgb(255, 255, 255)',
+    backgroundColor: "rgb(255, 255, 255)",
   },
   input: {
-    width: '65%',
+    width: "65%",
     height: 37,
-    borderColor: 'black',
+    borderColor: "black",
     borderWidth: 1,
     borderRadius: 5,
     backgroundColor: "white",
-    paddingVertical: 0
-  }, 
+    paddingVertical: 0,
+  },
   button: {
     marginVertical: 20,
     fontSize: 17,
@@ -148,9 +246,9 @@ const styles = StyleSheet.create({
   },
   row: {
     width: "100%",
-    gap: 0
+    gap: 0,
   },
   col: {
-    paddingHorizontal: 20
-  }
+    paddingHorizontal: 20,
+  },
 });

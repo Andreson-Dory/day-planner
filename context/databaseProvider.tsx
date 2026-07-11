@@ -14,7 +14,7 @@ export const DatabaseProvider = ({ children }: Props) => {
     const init = async () => {
       const database = await connectToDatabase();
       setDb(database);
-      await createTables(database); 
+      await createTables(database);
     };
 
     init();
@@ -24,9 +24,5 @@ export const DatabaseProvider = ({ children }: Props) => {
     return null;
   }
 
-  return (
-    <DatabaseContext.Provider value={db}>
-      {children}
-    </DatabaseContext.Provider>
-  );
+  return <DatabaseContext.Provider value={db}>{children}</DatabaseContext.Provider>;
 };

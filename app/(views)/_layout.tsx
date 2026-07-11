@@ -6,20 +6,20 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeLayout() {
   const colors = useThemeColors();
-  
+
   return (
-      <SafeAreaView style={[styles.container]}>
-        <LinearGradient
-          colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={{flex: 1}}
-        >
-            <View style={{flex: 1}}> 
-              <Slot />
-            </View>
-        </LinearGradient>
-      </SafeAreaView>
+    <SafeAreaView style={[styles.container]}>
+      <LinearGradient
+        colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{ flex: 1 }}
+      >
+        <View style={{ flex: 1 }}>
+          <Slot />
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
@@ -27,6 +27,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: -20,
-    paddingTop: -55
+    paddingTop: -55,
   },
 });

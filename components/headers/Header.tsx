@@ -54,11 +54,11 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     gap: 10,
-    marginTop: 16
+    marginTop: 16,
   },
   title: {
     fontSize: 40,
     lineHeight: 36,
     fontWeight: "bold",
-  }
+  },
 });

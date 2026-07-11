@@ -1,8 +1,8 @@
-
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { Provider } from "react-redux";
+import Toast from "react-native-toast-message";
 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { store } from "@/redux/store";
@@ -11,12 +11,12 @@ import { DatabaseProvider } from "@/context/databaseProvider";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemeProvider } from "@/hooks/useTheme";
 
-
 export default function RootLayout() {
   return (
     <ThemeProvider>
       <DatabaseProvider>
         <RootLayoutWithTheme />
+        <Toast />
       </DatabaseProvider>
     </ThemeProvider>
   );
@@ -55,6 +55,6 @@ function RootLayoutWithTheme() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-  }
+    flex: 1,
+  },
 });

@@ -1,43 +1,42 @@
 import { Task } from "@/constant/types/task";
 import { useEffect, useState } from "react";
 
-export function usePlanDraft () {
-    const [ period, setPeriod ] = useState<Array<string>>([])
-    const [ draft, setDraft ] = useState<Record<string, Task[]>>({})
-    
-    useEffect(() => {
-        const length = period.length
-        let newDraft: Record<string, Task[]> = {}
-        for (let index = 0; index < length; index++) {
-            const element = period[index]
-            if(draft[element]) newDraft = {...newDraft, [element]: draft[element]}
-            else newDraft = {...newDraft, [element]: []}
-        }
-        setDraft(newDraft)
-    }, [period])
+export function usePlanDraft() {
+  const [period, setPeriod] = useState<Array<string>>([]);
+  const [draft, setDraft] = useState<Record<string, Task[]>>({});
 
-    const addTask = (day: string, task: Task) => {
-        setDraft( prev => ({...prev, [day]: [...prev[day]?? [], task ]}))
+  useEffect(() => {
+    const length = period.length;
+    let newDraft: Record<string, Task[]> = {};
+    for (let index = 0; index < length; index++) {
+      const element = period[index];
+      if (draft[element]) newDraft = { ...newDraft, [element]: draft[element] };
+      else newDraft = { ...newDraft, [element]: [] };
     }
+    setDraft(newDraft);
+  }, [period]);
 
-    const deleteTask = (task: Task) => {
-        setDraft( prev => (
-            {...prev,
-                 [task.taskDate]: [...prev[task.taskDate].filter( current => current.idTask !== task.idTask)]
-            }))
-    }
+  const addTask = (day: string, task: Task) => {
+    setDraft((prev) => ({ ...prev, [day]: [...(prev[day] ?? []), task] }));
+  };
 
-    const reset = () => {
-        setPeriod([])
-        setDraft({})
-    }
-    
-    return {
-        data: draft,
-        setPeriod: setPeriod,
-        addTask: addTask,
-        deleteTask: deleteTask,
-        reset: reset
-    }
+  const deleteTask = (task: Task) => {
+    setDraft((prev) => ({
+      ...prev,
+      [task.taskDate]: [...prev[task.taskDate].filter((current) => current.idTask !== task.idTask)],
+    }));
+  };
 
+  const reset = () => {
+    setPeriod([]);
+    setDraft({});
+  };
+
+  return {
+    data: draft,
+    setPeriod: setPeriod,
+    addTask: addTask,
+    deleteTask: deleteTask,
+    reset: reset,
+  };
 }

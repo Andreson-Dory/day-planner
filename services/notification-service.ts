@@ -16,7 +16,7 @@ export async function scheduleTaskNotifications(task: CreateTask) {
   // Schedule reminder 10 min before start
   const startReminderTime = new Date(startTimeIni.getTime() - 10 * 60 * 1000);
   if (startReminderTime > now) {
-    startReminderId = await alarmNotificationService.scheduleReminder(
+    startReminderId = await alarmNotificationService.schedule(
       startReminderTime,
       "Upcoming Task",
       `${task.taskTitle} will start in 10 minutes`,
@@ -35,7 +35,7 @@ export async function scheduleTaskNotifications(task: CreateTask) {
   // Schedule reminder 5 min before end
   const endReminderTime = new Date(endTimeIni.getTime() - 5 * 60 * 1000);
   if (endReminderTime > now) {
-    endReminderId = await alarmNotificationService.scheduleReminder(
+    endReminderId = await alarmNotificationService.schedule(
       endReminderTime,
       "Task Ending Soon",
       `${task.taskTitle} will end in 5 minutes`,
@@ -58,10 +58,7 @@ export async function cancelNotification(notificationIds: string[]) {
   await alarmNotificationService.cancel(notificationIds);
 }
 
-export async function restoreTaskNotifications(
-  db: SQLiteDatabase,
-  tasks: Task[],
-) {
+export async function restoreTaskNotifications(db: SQLiteDatabase, tasks: Task[]) {
   const now = new Date();
 
   for (const task of tasks) {
@@ -71,7 +68,7 @@ export async function restoreTaskNotifications(
     // Restore start reminder notification (10 min before start)
     const startReminderTime = new Date(startTime.getTime() - 10 * 60 * 1000);
     if (startReminderTime > now && !task.startReminderId) {
-      const startReminderId = await alarmNotificationService.scheduleReminder(
+      const startReminderId = await alarmNotificationService.schedule(
         startReminderTime,
         "Upcoming Task",
         `${task.taskTitle} will start in 10 minutes`,
@@ -92,7 +89,7 @@ export async function restoreTaskNotifications(
     // Restore end reminder notification (5 min before end)
     const endReminderTime = new Date(endTime.getTime() - 5 * 60 * 1000);
     if (endReminderTime > now && !task.endReminderId) {
-      const endReminderId = await alarmNotificationService.scheduleReminder(
+      const endReminderId = await alarmNotificationService.schedule(
         endReminderTime,
         "Task Ending Soon",
         `${task.taskTitle} will end in 5 minutes`,
