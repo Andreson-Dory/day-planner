@@ -8,6 +8,7 @@ import { DatabaseContext } from "@/context/databaseContext";
 import { getAllTask } from "@/services/task-sevices";
 import { restoreTaskNotifications } from "@/services/notification-service";
 import { alarmNotificationService } from "@/lib/notifications";
+import "@/global.css";
 
 export default function Index() {
   const colors = useThemeColors();

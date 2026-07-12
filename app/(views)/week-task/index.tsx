@@ -118,7 +118,6 @@ export default function WeekTask() {
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
   const dispatch = useDispatch();
   const tasks = useAppSelector<Task[]>((state) => state.tasks.weekTasks);
-  const [refresh, setRefresh] = useState<number>(0);
 
   useEffect(() => {
     getDatesInRange({ setWeekDays, setWeekDaysCompleted });
@@ -138,7 +137,14 @@ export default function WeekTask() {
   return (
     <View style={{ flex: 1 }}>
       <RouterView>
-        <SubHeader text="Week Task" onPress={() => setRefresh((prev) => prev + 1)} />
+        <SubHeader
+          text="Week Task"
+          onPress={() => {
+            if (db && weekDaysCompleted) {
+              dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));
+            }
+          }}
+        />
         <StatusHeader filter={filter} setFilter={setFilter} />
         <Contents weekTasks={filteredTasks} weekDays={weekDays} db={db} filter={filter} />
       </RouterView>

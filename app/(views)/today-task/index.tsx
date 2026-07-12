@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, TextProps, View } from "react-native";
 import RouterView from "../router-view";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
@@ -34,12 +34,11 @@ export default function TodayTask() {
   const db = useContext(DatabaseContext);
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
   const tasks: Task[] = useAppSelector((state) => state.tasks.todaysTasks);
-  const [refresh, setRefresh] = useState<number>(0);
 
   useEffect(() => {
     if (!db) return;
     dispatch<any>(getTasksTodayAction(db));
-  }, []);
+  }, [db, dispatch]);
 
   useEffect(() => {
     setTasks(tasks);
@@ -48,7 +47,14 @@ export default function TodayTask() {
   return (
     <View style={{ flex: 1 }}>
       <RouterView>
-        <SubHeader text="Today Task" onPress={() => setRefresh((prev) => prev + 1)} />
+        <SubHeader
+          text="Today Task"
+          onPress={() => {
+            if (db) {
+              dispatch<any>(getTasksTodayAction(db));
+            }
+          }}
+        />
         <StatusHeader filter={filter} setFilter={setFilter} />
         <ScrollView showsVerticalScrollIndicator={false} style={styles.Content}>
           <Contents tasks={filteredTasks} db={db} />
