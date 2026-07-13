@@ -8,14 +8,14 @@ export default function HomeLayout() {
   const colors = useThemeColors();
 
   return (
-    <SafeAreaView style={[styles.container]}>
+    <SafeAreaView style={styles.container}>
       <LinearGradient
         colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
-        <View style={{ flex: 1 }}>
+        <View className="flex-1">
           <Slot />
         </View>
       </LinearGradient>

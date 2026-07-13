@@ -1,5 +1,4 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
-import { Image, Pressable, StyleSheet, TextProps } from "react-native";
+import { Pressable, TextProps } from "react-native";
 import { ThemedText } from "../ThemedText";
 
 type Props = TextProps & {
@@ -7,23 +6,14 @@ type Props = TextProps & {
 };
 
 export default function ConfirmButton({ onPress }: Props) {
-  const colors = useThemeColors();
-
   return (
-    <Pressable onPress={onPress} style={[styles.button, { backgroundColor: colors["greyWhite"] }]}>
-      <ThemedText variant="button" color="blue">
+    <Pressable
+      onPress={onPress}
+      className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
+    >
+      <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
         Confirm
       </ThemedText>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 168,
-    height: 35,
-    borderRadius: 10,
-  },
-});

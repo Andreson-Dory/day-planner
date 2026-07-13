@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, TextProps, View } from "react-native";
+import { Pressable, TextProps, View } from "react-native";
 import { Dispatch } from "react";
 import Button from "../button/Button";
 import { ThemedText } from "../ThemedText";
@@ -35,21 +35,21 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
   return (
     <Pressable onPress={() => setPressed(!pressed)}>
       <View
-        style={[styles.container, { backgroundColor: taskColor, borderLeftColor: borderColor }]}
+        className={`flex-col py-3.75 px-3.75 mt-1.25 mb-1.25 mx-1.25 border-l-4 rounded-2xl gap-1.25 ${taskColor} ${borderColor}`}
       >
-        <ThemedText variant="taskTitle" color="text" style={{ fontWeight: 700 }}>
+        <ThemedText className="text-lg leading-none text-slate-950 dark:text-slate-50">
           {task.taskTitle}
         </ThemedText>
         {pressed && (
           <View>
-            <View style={{ alignItems: "flex-start" }}>
+            <View className="items-start">
               <StatusBadge status={taskStatus} />
             </View>
-            <View style={styles.timeDetails}>
-              <ThemedText variant="smallText" color="text">
+            <View className="flex-row gap-0.25 my-1.25 mx-2.5">
+              <ThemedText className="text-base leading-none font-thin text-slate-950 dark:text-slate-50">
                 {startTimeStr} - {endTimeStr}{" "}
               </ThemedText>
-              <ThemedText variant="normal" color="duration">
+              <ThemedText className="text-base leading-none font-bold text-slate-500 dark:text-slate-300">
                 ({durationStr})
               </ThemedText>
             </View>
@@ -78,24 +78,3 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "column",
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    marginTop: 5,
-    marginBottom: 5,
-    marginHorizontal: 5,
-    borderLeftWidth: 5,
-    borderRadius: 15,
-    gap: 5,
-  },
-  timeDetails: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 1,
-    marginVertical: 5,
-    marginHorizontal: 10,
-  },
-});

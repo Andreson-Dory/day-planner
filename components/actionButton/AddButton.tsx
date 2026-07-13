@@ -1,55 +1,19 @@
-import { Image, Pressable, StyleSheet, TextProps, View, ViewProps } from "react-native";
-import { Link } from "expo-router";
-import { useThemeColors } from "@/hooks/useThemeColors";
+import { Image, Pressable, TextProps, View, ViewProps } from "react-native";
 import { ThemedText } from "../ThemedText";
 
-type Props = TextProps & {
-  stl?: ViewProps["style"];
-  date: string;
-  view: string;
-  startDate?: string;
-  endDate?: string;
-};
+type Props = TextProps & ViewProps;
 
-export function AddButton({ stl, date, view, startDate, endDate }: Props) {
-  const colors = useThemeColors();
-
+export function AddButton({ onPress, className }: Props) {
   return (
-    <Link
-      href={{
-        pathname: "/addTask",
-        params: { date: date, view: view, startDate: startDate, endDate: endDate },
-      }}
-      push
-      asChild
-    >
-      <Pressable>
-        <View style={[styles.button, { backgroundColor: colors["greyWhite"] }, stl]}>
-          <Image source={require("@/assets/images/add.png")} style={styles.img} />
-          <ThemedText variant="subtitle" color="blue" style={{ width: "40%" }}>
-            Add New Task
-          </ThemedText>
-        </View>
-      </Pressable>
-    </Link>
+    <Pressable onPress={onPress}>
+      <View
+        className={`flex-row justify-center items-center h-12 mx-1 rounded-2xl gap-2 border border-dashed border-blue-500 dark:border-blue-400 bg-slate-300/40 dark:bg-slate-400/20 text-blue-500 dark:text-blue-400 ${className}`}
+      >
+        <Image source={require("@/assets/images/add.png")} className="w-6 h-5" />
+        <ThemedText className="w-1/4 text-xl leading-none text-blue-500 dark:text-blue-400">
+          Add New Task
+        </ThemedText>
+      </View>
+    </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  img: {
-    width: 26,
-    height: 21,
-  },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 51,
-    marginHorizontal: 5,
-    borderRadius: 15,
-    gap: 10,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: "#005EC9",
-  },
-});

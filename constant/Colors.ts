@@ -1,159 +1,157 @@
-import { SubHeader } from "@/components/headers/SubHeader";
-
 export const Colors = {
   light: {
-    appBaseGradientStart: "rgb(116, 212, 255)",
-    appBaseGradientEnd: "rgb(81, 162, 255)",
-    title: "#6FFF00",
-    content: "rgb(241, 245, 249)",
-    light: "#F0F0F0",
-    subHeader: "rgb(56, 189, 248)",
-    subHeaderTxt: "rgb(255, 255, 255)",
-    blue: "#005EC9",
-    text: "#000000",
-    infoIcon: "rgb(0, 0, 0)",
-
-    //Option Card Colors
-    emeraldGradientStart: "rgb(236, 253, 245)",
-    emeraldGradientEnd: "rgb(208, 250, 229)",
-    blueGradientStart: "#rgb(239, 246, 255)",
-    blueGradientEnd: "rgb(219, 234, 254)",
-    orangeGradientStart: "rgb(255, 247, 237)",
-    orangeGradientEnd: "rgb(255, 237, 212)",
-
-    cardBg: "rgb(255, 255, 255)",
-    cardTitle: "rgb(15, 23, 43)",
-    cardDescription: "rgb(69, 85, 108)",
-
-    todayTaskIcon: "rgb(0, 122, 85)",
-    weekTaskIcon: "rgb(20, 71, 230)",
-    createPlanTaskIcon: "rgb(202, 53, 0)",
-
-    green: "#129225",
-
-    //Button Colors
-    all: "rgb(0, 146, 184)",
-    pending: "rgb(240, 177, 0)",
-    completed: "rgb(0, 153, 102)",
-    buttonStatHead: "rgb(106, 114, 130)",
-    finish: "rgb(0, 188, 125)",
-    trash: "rgb(251, 44, 54)",
-
-    //Task Colors
-    taskOngoing: "rgb(255, 251, 235)",
-    taskOngoingBorder: "rgb(254, 154, 0)",
-
-    taskCompleted: "rgb(236, 253, 245)",
-    taskCompletedBorder: "rgb(0, 188, 125)",
-
-    taskOverdue: "rgb(254, 242, 242)",
-    taskOverdueBorder: "rgb(251, 44, 54)",
-
-    taskUpcoming: "rgb(236, 254, 255)",
-    taskUpcomingBorder: "rgb(0, 184, 219)",
-
-    taskIconBtn: "rgb(255, 255, 255)",
-    duration: "rgb(106, 114, 130)",
-
-    //Status Badge
-    completedBg: "rgb(208, 250, 229)",
-    completedTxt: "rgb(0, 96, 69)",
-    completedDot: "rgb(0, 187, 167)",
-
-    overdueBg: "rgb(255, 226, 226)",
-    overdueTxt: "rgb(159, 7, 18)",
-    overdueDot: "rgb(251, 44, 54)",
-
-    ongoingBg: "rgb(254, 243, 198)",
-    ongoingTxt: "rgb(151, 60, 0)",
-    ongoingDot: "rgb(254, 154, 0)",
-
-    upcomingBg: "rgb(219, 234, 254)",
-    upcomingTxt: "rgb(25, 60, 184)",
-    upcomingDot: "rgb(43, 127, 255)",
-
-    //Modal
-    modalBg: "rgb(236, 254, 255)",
-    modalSpcTxt: "#005EC9",
-    modalInputTxt: "rgb(255, 255, 255)",
-    greyWhite: "rgba(212, 216, 221, 0.4)",
-  },
-  dark: {
-    appBaseGradientStart: "rgb(0, 95, 120)",
-    appBaseGradientEnd: "rgb(69, 85, 108)",
-
-    title: "#9DFF3F",
-    content: "rgb(38, 38, 38)",
-    light: "#1E293B",
-    subHeader: "rgb(0, 132, 209)",
-    subHeaderTxt: "rgb(255, 255, 255)",
-    blue: "#3B82F6",
-    text: "#F8FAFC",
-    infoIcon: "rgb(255, 255, 255)",
+    appBaseGradientStart: "#7dd3fc", // sky-300
+    appBaseGradientEnd: "#60a5fa", // blue-400
+    title: "#a3e635", // lime-400 (closest to neon #6FFF00)
+    content: "#f1f5f9", // slate-100
+    light: "#f5f5f5", // neutral-100
+    subHeader: "#38bdf8", // sky-400
+    subHeaderTxt: "#ffffff", // white
+    blue: "#1e40af", // blue-800 (closest to #005EC9)
+    text: "#000000", // black
+    infoIcon: "#000000", // black
 
     // Option Card Colors
-    emeraldGradientStart: "rgb(6, 78, 59)",
-    emeraldGradientEnd: "rgb(4, 120, 87)",
-    blueGradientStart: "rgb(30, 58, 138)",
-    blueGradientEnd: "rgb(37, 99, 235)",
-    orangeGradientStart: "rgb(124, 45, 18)",
-    orangeGradientEnd: "rgb(194, 65, 12)",
+    emeraldGradientStart: "#ecfdf5", // emerald-50
+    emeraldGradientEnd: "#d1fae5", // emerald-100
+    blueGradientStart: "#eff6ff", // blue-50 (bug fixed)
+    blueGradientEnd: "#dbeafe", // blue-100
+    orangeGradientStart: "#fff7ed", // orange-50
+    orangeGradientEnd: "#ffedd5", // orange-100
 
-    cardBg: "rgb(144, 161, 185)",
-    cardTitle: "rgb(248, 250, 252)",
-    cardDescription: "rgb(249, 250, 251)",
+    cardBg: "#ffffff", // white
+    cardTitle: "#0f172a", // slate-900
+    cardDescription: "#475569", // slate-600
 
-    todayTaskIcon: "rgb(16, 185, 129)",
-    weekTaskIcon: "rgb(96, 165, 250)",
-    createPlanTaskIcon: "rgb(251, 146, 60)",
+    todayTaskIcon: "#047857", // emerald-700
+    weekTaskIcon: "#1d4ed8", // blue-700
+    createPlanTaskIcon: "#c2410c", // orange-700
 
-    green: "#22C55E",
+    green: "#15803d", // green-700
 
     // Button Colors
-    all: "rgb(6, 182, 212)",
-    pending: "rgb(245, 158, 11)",
-    completed: "rgb(34, 197, 94)",
-    buttonStatHead: "rgb(148, 163, 184)",
-    finish: "rgb(16, 185, 129)",
-    trash: "rgb(239, 68, 68)",
+    all: "#0891b2", // cyan-600
+    pending: "#eab308", // yellow-500
+    completed: "#059669", // emerald-600
+    buttonStatHead: "#64748b", // slate-500
+    finish: "#10b981", // emerald-500
+    trash: "#ef4444", // red-500
 
     // Task Colors
-    taskOngoing: "rgb(64, 38, 0)",
-    taskOngoingBorder: "rgb(251, 191, 36)",
+    taskOngoing: "#fffbeb", // amber-50
+    taskOngoingBorder: "#f97316", // orange-500
 
-    taskCompleted: "rgb(6, 78, 59)",
-    taskCompletedBorder: "rgb(34, 197, 94)",
+    taskCompleted: "#ecfdf5", // emerald-50
+    taskCompletedBorder: "#10b981", // emerald-500
 
-    taskOverdue: "rgb(69, 10, 10)",
-    taskOverdueBorder: "rgb(239, 68, 68)",
+    taskOverdue: "#fef2f2", // red-50
+    taskOverdueBorder: "#ef4444", // red-500
 
-    taskUpcoming: "rgb(8, 47, 73)",
-    taskUpcomingBorder: "rgb(56, 189, 248)",
+    taskUpcoming: "#ecfeff", // cyan-50
+    taskUpcomingBorder: "#06b6d4", // cyan-500
 
-    taskIconBtn: "#1E293B",
-    duration: "rgb(202, 213, 226)",
+    taskIconBtn: "#ffffff", // white
+    duration: "#64748b", // slate-500
 
     // Status Badge
-    completedBg: "rgb(6, 78, 59)",
-    completedTxt: "rgb(110, 231, 183)",
-    completedDot: "rgb(34, 197, 94)",
+    completedBg: "#d1fae5", // emerald-100
+    completedTxt: "#065f46", // emerald-800
+    completedDot: "#14b8a6", // teal-500
 
-    overdueBg: "rgb(69, 10, 10)",
-    overdueTxt: "rgb(252, 165, 165)",
-    overdueDot: "rgb(239, 68, 68)",
+    overdueBg: "#fee2e2", // red-100
+    overdueTxt: "#991b1b", // red-800
+    overdueDot: "#ef4444", // red-500
 
-    ongoingBg: "rgb(64, 38, 0)",
-    ongoingTxt: "rgb(253, 224, 71)",
-    ongoingDot: "rgb(251, 191, 36)",
+    ongoingBg: "#fef3c7", // amber-100
+    ongoingTxt: "#9a3412", // orange-800
+    ongoingDot: "#f97316", // orange-500
 
-    upcomingBg: "rgb(8, 47, 73)",
-    upcomingTxt: "rgb(125, 211, 252)",
-    upcomingDot: "rgb(56, 189, 248)",
+    upcomingBg: "#dbeafe", // blue-100
+    upcomingTxt: "#1e40af", // blue-800
+    upcomingDot: "#3b82f6", // blue-500
 
-    //Modal
-    modalBg: "rgb(5, 51, 69)",
-    modalSpcTxt: "#3B82F6",
-    modalInputTxt: "rgb(161, 161, 161)",
-    greyWhite: "rgba(148, 163, 184, 0.2)",
+    // Modal
+    modalBg: "#ecfeff", // cyan-50
+    modalSpcTxt: "#1e40af", // blue-800
+    modalInputTxt: "#ffffff", // white
+    greyWhite: "rgba(203, 213, 225, 0.4)", // slate-300/40
+  },
+  dark: {
+    appBaseGradientStart: "#155e75", // cyan-800
+    appBaseGradientEnd: "#475569", // slate-600
+
+    title: "#a3e635", // lime-400
+    content: "#262626", // neutral-800
+    light: "#1e293b", // slate-800
+    subHeader: "#0284c7", // sky-600
+    subHeaderTxt: "#ffffff", // white
+    blue: "#3b82f6", // blue-500
+    text: "#f8fafc", // slate-50
+    infoIcon: "#ffffff", // white
+
+    // Option Card Colors
+    emeraldGradientStart: "#064e3b", // emerald-900
+    emeraldGradientEnd: "#047857", // emerald-700
+    blueGradientStart: "#1e3a8a", // blue-900
+    blueGradientEnd: "#2563eb", // blue-600
+    orangeGradientStart: "#7c2d12", // orange-900
+    orangeGradientEnd: "#c2410c", // orange-700
+
+    cardBg: "#94a3b8", // slate-400
+    cardTitle: "#f8fafc", // slate-50
+    cardDescription: "#f9fafb", // gray-50
+
+    todayTaskIcon: "#10b981", // emerald-500
+    weekTaskIcon: "#60a5fa", // blue-400
+    createPlanTaskIcon: "#fb923c", // orange-400
+
+    green: "#22c55e", // green-500
+
+    // Button Colors
+    all: "#06b6d4", // cyan-500
+    pending: "#f59e0b", // amber-500
+    completed: "#22c55e", // green-500
+    buttonStatHead: "#94a3b8", // slate-400
+    finish: "#10b981", // emerald-500
+    trash: "#ef4444", // red-500
+
+    // Task Colors
+    taskOngoing: "#451a03", // amber-950
+    taskOngoingBorder: "#fbbf24", // amber-400
+
+    taskCompleted: "#064e3b", // emerald-900
+    taskCompletedBorder: "#22c55e", // green-500
+
+    taskOverdue: "#450a0a", // red-950
+    taskOverdueBorder: "#ef4444", // red-500
+
+    taskUpcoming: "#082f49", // sky-950
+    taskUpcomingBorder: "#38bdf8", // sky-400
+
+    taskIconBtn: "#1e293b", // slate-800
+    duration: "#cbd5e1", // slate-300
+
+    // Status Badge
+    completedBg: "#064e3b", // emerald-900
+    completedTxt: "#6ee7b7", // emerald-300
+    completedDot: "#22c55e", // green-500
+
+    overdueBg: "#450a0a", // red-950
+    overdueTxt: "#fca5a5", // red-300
+    overdueDot: "#ef4444", // red-500
+
+    ongoingBg: "#451a03", // amber-950
+    ongoingTxt: "#fde047", // yellow-300
+    ongoingDot: "#fbbf24", // amber-400
+
+    upcomingBg: "#082f49", // sky-950
+    upcomingTxt: "#7dd3fc", // sky-300
+    upcomingDot: "#38bdf8", // sky-400
+
+    // Modal
+    modalBg: "#083344", // cyan-950
+    modalSpcTxt: "#3b82f6", // blue-500
+    modalInputTxt: "#a3a3a3", // neutral-400
+    greyWhite: "rgba(148, 163, 184, 0.2)", // slate-400/20
   },
 };

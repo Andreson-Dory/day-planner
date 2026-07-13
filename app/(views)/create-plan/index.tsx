@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  StyleSheet,
   TextInput,
   View,
 } from "react-native";
@@ -25,6 +24,7 @@ import { TaskCard } from "@/components/task/Task";
 import { CreateTask } from "@/constant/types/task";
 import { scheduleTaskNotifications } from "@/services/notification-service";
 import { formatLocalDate } from "@/utils/date";
+import Toast from "react-native-toast-message";
 
 const getDatesInRange = (
   startDate: string,
@@ -141,21 +141,62 @@ export default function CreatePlan() {
       };
     });
 
-    await addArrayOfTaskService(db, arrayData);
+    await addArrayOfTaskService(db, arrayData)
+      .then(() => {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Tasks added with success with reminders",
+          text1Style: { fontSize: 16, fontWeight: "bold", color: "#059669" },
+          text2Style: { fontSize: 14 },
+          position: "top",
+        });
+      })
+      .catch(() => {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Error adding tasks",
+          text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
+          text2Style: { fontSize: 14 },
+          position: "top",
+        });
+      });
     resetData();
   };
 
   const handleClick = async () => {
     if (title === "") {
-      Alert.alert("Warning!", "Please enter task title");
+      Toast.show({
+        type: "error",
+        text1: "Warning",
+        text2: "Please enter task title",
+        text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
+        text2Style: { fontSize: 14 },
+        position: "top",
+      });
       return;
     }
     if (startTime === "None" || endTime === "None" || new Date(startTime) >= new Date(endTime)) {
-      Alert.alert("Warning!", "Please enter valid time");
+      Toast.show({
+        type: "error",
+        text1: "Warning",
+        text2: "Please enter valid time",
+        text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
+        text2Style: { fontSize: 14 },
+        position: "top",
+      });
       return;
     }
     if (!newTaskDate) {
-      Alert.alert("Warning!", "Couldn't find the date of task");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Not connected to the database!",
+        text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
+        text2Style: { fontSize: 14 },
+        position: "top",
+      });
       return;
     }
 
@@ -185,7 +226,6 @@ export default function CreatePlan() {
   const [markedDate, setMarkedDate] = useState({});
   const [refresh, setRefresh] = useState<number>(0);
   const db = useContext(DatabaseContext);
-  const colors = useThemeColors();
   const currentDate = new Date();
   const initialDate = formatLocalDate(currentDate);
   const datesPeriod = (day: string) => {
@@ -226,7 +266,7 @@ export default function CreatePlan() {
   }, [weekDays]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1">
       <RouterView>
         <SubHeader text="Create Plan" onPress={showModal} ButtonRef={ButtonRef} />
         {/*             Main view of the component               */}
@@ -244,13 +284,18 @@ export default function CreatePlan() {
               [initialDate]: { today: true, textColor: "blue" },
               ...markedDate,
             }}
-            style={styles.calendar}
+            style={{
+              width: "95%",
+              alignSelf: "center",
+              margin: 10,
+              borderColor: "#49a6f8b8",
+            }}
           />
-          <View style={styles.subContent}>
+          <View className="mb-0.5">
             {weekDays.map((day, index) => (
-              <View key={index} style={styles.content}>
+              <View key={index} className="flex-col gap-1 mt-2 mx-2">
                 <Pressable onPress={() => toogleDays(index)}>
-                  <ThemedText variant="normal" color="light" style={styles.dayText}>
+                  <ThemedText className="text-lg leading-none mt-1.25 w-full text-center py-3.75 rounded-2xl text-slate-50 dark:text-slate-800 bg-sky-400 dark:bg-sky-600">
                     {new Date(day + "T00:00:00").toLocaleDateString("en-US", {
                       weekday: "long",
                       year: "numeric",
@@ -278,9 +323,9 @@ export default function CreatePlan() {
                         setNewTaskDate(day);
                       }}
                     >
-                      <View style={[styles.button, { backgroundColor: colors["greyWhite"] }]}>
-                        <Image source={require("@/assets/images/add.png")} style={styles.img} />
-                        <ThemedText variant="subtitle" color="blue" style={{ width: "40%" }}>
+                      <View className="flex-row justify-center items-center h-12 mx-1 rounded-2xl gap-2 border border-dashed border-blue-500 dark:border-blue-400 bg-slate-300/40 dark:bg-slate-400/20 text-blue-500 dark:text-blue-400">
+                        <Image source={require("@/assets/images/add.png")} className="w-6 h-5" />
+                        <ThemedText className="text-xl leading-none w-1/4 text-blue-500 dark:text-blue-400">
                           Add New Task
                         </ThemedText>
                       </View>
@@ -299,33 +344,27 @@ export default function CreatePlan() {
           visible={showAddModal}
           onRequestClose={() => setShowAddModal(!showAddModal)}
         >
-          <View style={styles.centeredView}>
-            <View style={[styles.addModalView, { backgroundColor: colors.modalBg }]}>
-              <ThemedText variant="subtitle" color="modalSpcTxt" style={{ marginBottom: 25 }}>
-                {" "}
+          <View className="flex-1 justify-center items-center">
+            <View className="py-5 rounded-4.25 mx-4 bg-cyan-50 dark:bg-cyan-950">
+              <ThemedText className="text-xl text-center leading-none mb-6 text-blue-500 dark:text-blue-500">
                 Add New Task
               </ThemedText>
-              <Col style={styles.col}>
-                <Row style={styles.row}>
-                  <ThemedText variant="normal" color="text">
-                    {" "}
-                    Task title{" "}
+              <Col className="px-4 mb-4 gap-4">
+                <Row className="w-full gap-0">
+                  <ThemedText className="text-lg leading-none text-gray-950 dark:text-slate-50">
+                    Task title
                   </ThemedText>
                   <TextInput
-                    style={[
-                      styles.input,
-                      { backgroundColor: colors.modalInputTxt, color: colors.text, fontSize: 18 },
-                    ]}
+                    className="w-2/3 h-9 border rounded-md py-0 text-base text-gray-950 dark:text-slate-50 border-gray-950 dark:border-slate-50 bg-gray-50 dark:bg-neutral-400"
                     value={title}
                     onChangeText={(text) => setTitle(text)}
                   />
                 </Row>
-                <Row style={styles.row}>
-                  <ThemedText variant="normal" color="text">
-                    {" "}
-                    Starting time{" "}
+                <Row className="w-full gap-0">
+                  <ThemedText className="text-lg leading-none text-gray-950 dark:text-slate-50">
+                    Starting time
                   </ThemedText>
-                  <ThemedText variant="normal" color="text">
+                  <ThemedText className="text-base leading-none text-gray-950 dark:text-slate-50">
                     {startTime === "None"
                       ? "None"
                       : new Date(startTime).toLocaleTimeString([], {
@@ -339,17 +378,16 @@ export default function CreatePlan() {
                       setStatus("start");
                     }}
                   >
-                    <ThemedText variant="normal" color="modalSpcTxt">
+                    <ThemedText className="text-base leading-none text-blue-400 dark:text-blue-500">
                       Pick time
                     </ThemedText>
                   </Pressable>
                 </Row>
-                <Row style={styles.row}>
-                  <ThemedText variant="normal" color="text">
-                    {" "}
-                    Ending time{" "}
+                <Row className="w-full gap-0">
+                  <ThemedText className="text-lg leading-none text-gray-950 dark:text-slate-50">
+                    Ending time
                   </ThemedText>
-                  <ThemedText variant="normal" color="text">
+                  <ThemedText className="text-base leading-none text-gray-950 dark:text-slate-50">
                     {" "}
                     {endTime === "None"
                       ? "None"
@@ -364,7 +402,7 @@ export default function CreatePlan() {
                       setStatus("end");
                     }}
                   >
-                    <ThemedText variant="normal" color="modalSpcTxt">
+                    <ThemedText className="text-base leading-none text-blue-400 dark:text-blue-500">
                       Pick time
                     </ThemedText>
                   </Pressable>
@@ -379,20 +417,20 @@ export default function CreatePlan() {
                   onChange={onChange}
                 />
               )}
-              <Row>
+              <Row className="px-4">
                 <Pressable
                   onPress={() => setShowAddModal(!showAddModal)}
-                  style={[styles.addModalButton, { backgroundColor: colors["greyWhite"] }]}
+                  className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
                 >
-                  <ThemedText variant="button" color="modalSpcTxt">
+                  <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
                     Cancel
                   </ThemedText>
                 </Pressable>
                 <Pressable
                   onPress={handleClick}
-                  style={[styles.addModalButton, { backgroundColor: colors["greyWhite"] }]}
+                  className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
                 >
-                  <ThemedText variant="button" color="modalSpcTxt">
+                  <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
                     Confirm
                   </ThemedText>
                 </Pressable>
@@ -407,27 +445,38 @@ export default function CreatePlan() {
           transparent={true}
           visible={showMenuModal}
           onRequestClose={() => setShowMenuModal(!showMenuModal)}
-          style={styles.menuModal}
         >
-          <Pressable style={styles.backdrop} onPress={() => setShowMenuModal(!showMenuModal)} />
-          <View style={[styles.popup, { ...position, backgroundColor: colors.light }]}>
+          <Pressable
+            className="flex-1 bg-black/30"
+            onPress={() => setShowMenuModal(!showMenuModal)}
+          />
+          <View
+            className="absolute w-24 p-2 -mr-2 -mt-1 rounded-2xl gap-1 bg-slate-100 dark:bg-slate-800"
+            style={position}
+          >
             <Pressable
               onPress={() => {
                 save(data);
               }}
-              style={styles.menuButton}
+              className="p-1 border-2 border-slate-500 dark:border-slate-300"
             >
-              <ThemedText variant="normal" color="text" style={{ textAlign: "center" }}>
+              <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Save
               </ThemedText>
             </Pressable>
-            <Pressable onPress={funcRefresh} style={styles.menuButton}>
-              <ThemedText variant="normal" color="text" style={{ textAlign: "center" }}>
+            <Pressable
+              onPress={funcRefresh}
+              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+            >
+              <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Reload
               </ThemedText>
             </Pressable>
-            <Pressable onPress={resetData} style={styles.menuButton}>
-              <ThemedText variant="normal" color="text" style={{ textAlign: "center" }}>
+            <Pressable
+              onPress={resetData}
+              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+            >
+              <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Reset
               </ThemedText>
             </Pressable>
@@ -437,115 +486,3 @@ export default function CreatePlan() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    flexDirection: "column",
-    gap: 5,
-    marginTop: 10,
-    marginHorizontal: 10,
-  },
-  dayText: {
-    fontSize: 18,
-    marginTop: 5,
-    backgroundColor: "#49a6f8b8",
-    width: "100%",
-    textAlign: "center",
-    paddingVertical: 15,
-    borderRadius: 15,
-  },
-  calendar: {
-    width: "95%",
-    alignSelf: "center",
-    margin: 10,
-    borderColor: "#49a6f8b8",
-  },
-  subContent: {
-    marginBottom: 10,
-  },
-  img: {
-    width: 26,
-    height: 21,
-  },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 42,
-    marginTop: 5,
-    marginHorizontal: 5,
-    borderRadius: 15,
-    gap: 10,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: "#005EC9",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addModalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 15,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  input: {
-    width: "65%",
-    height: 37,
-    borderColor: "black",
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: "white",
-    paddingVertical: 0,
-  },
-  addModalButton: {
-    marginVertical: 20,
-    fontSize: 17,
-    alignItems: "center",
-    paddingVertical: 8,
-    marginRight: 15,
-    width: 150,
-    height: 35,
-    borderRadius: 10,
-    padding: 10,
-  },
-  row: {
-    width: "100%",
-    gap: 0,
-  },
-  col: {
-    paddingHorizontal: 20,
-  },
-  menuModal: {
-    borderColor: "#A5CAD2",
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
-  popup: {
-    position: "absolute",
-    width: 100,
-    padding: 10,
-    marginRight: -10,
-    marginTop: -5,
-    borderRadius: 15,
-    gap: 2,
-  },
-  menuButton: {
-    padding: 5,
-    borderBottomWidth: 2,
-    borderBottomColor: "#A5CAD2",
-  },
-});
