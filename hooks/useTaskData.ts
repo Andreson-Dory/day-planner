@@ -4,7 +4,7 @@ import { Dispatch, useEffect, useState } from "react";
 import { calculateDuration, formatDuration, formatTime } from "@/utils/date";
 import { useDispatch } from "react-redux";
 import { deleteTaskService, setFinishedTask } from "@/services/task-sevices";
-import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import { getTasksDailyAction, getTasksWeekAction } from "@/redux/actions/taskActions";
 import { alarmNotificationService } from "@/lib/notifications";
 import { useTheme } from "./useTheme";
 import Toast from "react-native-toast-message";
@@ -32,8 +32,7 @@ const handleFinish = async (
   db: SQLiteDatabase | null,
   view: string,
   dispatch: Dispatch<any>,
-  startDate: string,
-  endDate: string,
+  date: string,
 ) => {
   if (!db) {
     Toast.show({
@@ -54,8 +53,7 @@ const handleFinish = async (
   ];
   await alarmNotificationService.cancel(ids);
   await setFinishedTask(db, task.idTask);
-  if (view === "today") dispatch(getTasksTodayAction(db));
-  else if (view === "week") dispatch(getTasksWeekAction(db, startDate, endDate));
+  if (view === "today" || view === "week") dispatch(getTasksDailyAction(db, date));
 };
 
 const handleDelete = async (
@@ -63,8 +61,7 @@ const handleDelete = async (
   db: SQLiteDatabase | null,
   view: string,
   dispatch: Dispatch<any>,
-  startDate: string,
-  endDate: string,
+  date: string,
 ) => {
   if (!db) {
     Toast.show({
@@ -105,8 +102,7 @@ const handleDelete = async (
         position: "top",
       });
     });
-  if (view === "today") dispatch(getTasksTodayAction(db));
-  else if (view === "week") dispatch(getTasksWeekAction(db, startDate, endDate));
+  if (view === "today" || view === "week") dispatch(getTasksDailyAction(db, date));
 };
 
 export function useTaskData(task: Task) {

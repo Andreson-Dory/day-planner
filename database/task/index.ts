@@ -82,17 +82,15 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
   }
 };
 
-export const getTasksToday = async (db: SQLiteDatabase): Promise<Task[]> => {
-  const today = new Date();
-  const todayString = formatLocalDate(today);
+export const getTasksDaily = async (db: SQLiteDatabase, date: string): Promise<Task[]> => {
   const selectQuery = ` SELECT * FROM TASKS WHERE taskDate = $date; `;
 
   try {
-    const result = await db.getAllAsync<Task>(selectQuery, { $date: todayString });
+    const result = await db.getAllAsync<Task>(selectQuery, { $date: date });
     return result;
   } catch (error) {
     console.error(error);
-    throw Error(" Failed to get today tasks ");
+    throw Error(" Failed to get daily tasks ");
   }
 };
 

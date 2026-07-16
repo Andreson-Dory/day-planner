@@ -1,32 +1,44 @@
-import { Pressable, ScrollView, TextProps, View } from "react-native";
+import { Dimensions, Modal, Pressable, ScrollView, TextProps, View } from "react-native";
 import RouterView from "../router-view";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
 import { useDispatch } from "react-redux";
-import { getTasksWeekAction } from "@/redux/actions/taskActions";
+import { getTasksDailyAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
 import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { TaskCard } from "@/components/task/Task";
 import { Task } from "@/constant/types/task";
 import { formatLocalDate } from "@/utils/date";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import AddTaskModal from "@/components/task/addTaskModal";
 
 type Props = TextProps & {
-  weekTasks: Task[];
-  weekDays: string[];
+  dailyTasks: Task[];
+  currentDate: string;
   db: SQLiteDatabase | null;
-  filter: string;
 };
 
 type getDateProps = {
   setWeekDays: React.Dispatch<React.SetStateAction<string[]>>;
   setWeekDaysCompleted: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const getDateString = (date: string) => {
+  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+const getWeekDay = (date: string) => {
+  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+  });
 };
 
 const getDatesInRange = ({ setWeekDays, setWeekDaysCompleted }: getDateProps) => {
@@ -46,114 +58,116 @@ const getDatesInRange = ({ setWeekDays, setWeekDaysCompleted }: getDateProps) =>
   setWeekDaysCompleted(true);
 };
 
-function Contents({ weekTasks, weekDays, db, filter }: Props) {
-  const [openDays, setOpenDays] = useState<Set<number>>(new Set());
-  const [showAddTaskModal, setShowAddTaskModal] = useState<boolean>(false);
-  const now = formatLocalDate(new Date());
-  const toogleDays = (index: number) => {
-    setOpenDays((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
-    });
-  };
-
+function Contents({ dailyTasks, currentDate, db }: Props) {
   return (
     <ScrollView className="mb-2.5" showsVerticalScrollIndicator={false}>
-      {weekDays.map((day, index) => {
-        const shouldRender = filter === "Completed" ? day <= now : day >= now;
-        const newIndex = index + 1;
-
-        if (!shouldRender) return null;
-
-        return (
-          <View key={newIndex} className="flex-col gap-1.25 mt-2.5 mx-2.5">
-            <Pressable onPress={() => toogleDays(newIndex)}>
-              <ThemedText className="text-lg leading-none mt-1.25 w-full text-center py-3.75 rounded-2xl text-slate-50 dark:text-slate-800 bg-sky-400 dark:bg-sky-600">
-                {new Date(day + "T00:00:00").toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </ThemedText>
-            </Pressable>
-            {openDays.has(newIndex) && (
-              <View>
-                {weekTasks
-                  .filter((task) => task.taskDate === day)
-                  .map((taskItem) => (
-                    <TaskCard
-                      key={taskItem.idTask}
-                      task={taskItem}
-                      view="week"
-                      startDate={weekDays[0]}
-                      endDate={weekDays[6]}
-                      db={db}
-                    />
-                  ))}
-                {filter !== "Completed" && (
-                  <AddButton className="mt-1.25 h-10.5" onPress={() => setShowAddTaskModal(true)} />
-                )}
-
-                <AddTaskModal
-                  showAddModal={showAddTaskModal}
-                  setShowAddModal={setShowAddTaskModal}
-                  date={day}
-                  view="week"
-                  startDate={weekDays[0]}
-                  endDate={weekDays[6]}
-                />
-              </View>
-            )}
-          </View>
-        );
-      })}
+      {dailyTasks.map((task) => (
+        <TaskCard key={task.idTask} task={task} view="week" date={currentDate} db={db} />
+      ))}
     </ScrollView>
   );
 }
 
 export default function WeekTask() {
-  const [weekDays, setWeekDays] = useState<string[]>([]);
-  const [weekDaysCompleted, setWeekDaysCompleted] = useState<boolean>(false);
   const db = useContext(DatabaseContext);
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
   const dispatch = useDispatch();
-  const tasks = useAppSelector<Task[]>((state) => state.tasks.weekTasks);
+  const tasks = useAppSelector<Task[]>((state) => state.tasks.dailyTasks);
+  const [weekDays, setWeekDays] = useState<string[]>([]);
+  const [loadingCurrentWeek, setLoadingCurrentWeek] = useState<boolean>(true);
+  const now = formatLocalDate(new Date());
+  const [selectedDay, setSelectedDay] = useState<string>(now);
+  const [showAddTaskModal, setShowAddTaskModal] = useState<boolean>(false);
+  const [weekDaysCompleted, setWeekDaysCompleted] = useState<boolean>(false);
+  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [position, setPosition] = useState<null | { top: number; right: number }>(null);
+  const ButtonRef = useRef<View>(null) as React.RefObject<View>;
 
   useEffect(() => {
     getDatesInRange({ setWeekDays, setWeekDaysCompleted });
+    setLoadingCurrentWeek(false);
   }, []);
 
   useEffect(() => {
     if (!db) return;
-    if (!weekDaysCompleted) return;
+    if (!selectedDay) return;
 
-    dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));
-  }, [db, weekDaysCompleted, weekDays]);
+    dispatch<any>(getTasksDailyAction(db, selectedDay));
+  }, [db, selectedDay]);
 
   useEffect(() => {
     setTasks(tasks);
   }, [tasks]);
 
+  const showModal = () => {
+    ButtonRef.current?.measureInWindow((x, y, width, height) => {
+      setPosition({
+        top: y + height * 4,
+        right: Dimensions.get("window").width - x - width,
+      });
+      setShowMenuModal(true);
+    });
+  };
+
   return (
     <View className="flex-1">
       <RouterView>
         <SubHeader
-          text="Week Task"
-          onPress={() => {
-            if (db && weekDaysCompleted) {
-              dispatch<any>(getTasksWeekAction(db, weekDays[0], weekDays[6]));
-            }
-          }}
+          text={getDateString(selectedDay)}
+          type="week"
+          onPress={showModal}
+          ButtonRef={ButtonRef}
         />
         <StatusHeader filter={filter} setFilter={setFilter} />
-        <Contents weekTasks={filteredTasks} weekDays={weekDays} db={db} filter={filter} />
+        <Contents dailyTasks={filteredTasks} currentDate={selectedDay} db={db} />
+        {selectedDay >= now && (
+          <AddButton
+            className="bottom-3.75 left-0 right-0 z-10"
+            onPress={() => setShowAddTaskModal(true)}
+          />
+        )}
+        <AddTaskModal
+          showAddModal={showAddTaskModal}
+          setShowAddModal={setShowAddTaskModal}
+          date={selectedDay}
+          view="week"
+        />
       </RouterView>
+      {/*             Modal for popup options                 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showMenuModal}
+        onRequestClose={() => setShowMenuModal(!showMenuModal)}
+      >
+        <Pressable
+          className="flex-1 bg-black/30"
+          onPress={() => setShowMenuModal(!showMenuModal)}
+        />
+        <View
+          className="absolute w-44 p-2 -mr-2 -mt-1 rounded-2xl gap-2 bg-slate-100 dark:bg-slate-800"
+          style={position}
+        >
+          {weekDays.map((day) => {
+            return (
+              <Pressable
+                onPress={() => {
+                  setSelectedDay(day);
+                  setShowMenuModal(false);
+                }}
+                className="p-3 rounded-xl border border-slate-500 dark:border-slate-300"
+              >
+                <ThemedText
+                  key={day}
+                  className="text-xl leading-none text-center text-gray-950 dark:text-slate-50"
+                >
+                  {getWeekDay(day)}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Modal>
     </View>
   );
 }

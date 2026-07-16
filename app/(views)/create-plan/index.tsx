@@ -14,7 +14,6 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { SubHeader } from "@/components/headers/SubHeader";
 import { ThemedText } from "@/components/ThemedText";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { usePlanDraft } from "@/hooks/usePlanDraft";
 import Row from "@/components/row";
 import Col from "@/components/col";
@@ -268,7 +267,7 @@ export default function CreatePlan() {
   return (
     <View className="flex-1">
       <RouterView>
-        <SubHeader text="Create Plan" onPress={showModal} ButtonRef={ButtonRef} />
+        <SubHeader text="Create Plan" type="create" onPress={showModal} ButtonRef={ButtonRef} />
         {/*             Main view of the component               */}
         <ScrollView showsVerticalScrollIndicator={false}>
           <Calendar
@@ -311,8 +310,7 @@ export default function CreatePlan() {
                         key={task.idTask}
                         task={task}
                         view="create_plan"
-                        startDate={weekDays[0]}
-                        endDate={weekDays[6]}
+                        date={weekDays[0]}
                         db={db}
                         deleteSetter={deleteTask}
                       />
@@ -451,14 +449,14 @@ export default function CreatePlan() {
             onPress={() => setShowMenuModal(!showMenuModal)}
           />
           <View
-            className="absolute w-24 p-2 -mr-2 -mt-1 rounded-2xl gap-1 bg-slate-100 dark:bg-slate-800"
+            className="absolute w-44 p-2 -mr-2 -mt-1 rounded-2xl gap-2 bg-slate-100 dark:bg-slate-800"
             style={position}
           >
             <Pressable
               onPress={() => {
                 save(data);
               }}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
               <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Save
@@ -466,7 +464,7 @@ export default function CreatePlan() {
             </Pressable>
             <Pressable
               onPress={funcRefresh}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
               <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Reload
@@ -474,7 +472,7 @@ export default function CreatePlan() {
             </Pressable>
             <Pressable
               onPress={resetData}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
               <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Reset

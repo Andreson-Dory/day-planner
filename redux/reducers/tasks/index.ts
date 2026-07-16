@@ -2,16 +2,16 @@ import {
   GET_PLAN_TASKS,
   GET_PLAN_TASKS_ERROR,
   GET_PLAN_TASKS_SUCCESS,
-  GET_TODAYS_TASKS,
-  GET_TODAYS_TASKS_ERROR,
-  GET_TODAYS_TASKS_SUCCESS,
+  GET_DAILY_TASKS,
+  GET_DAILY_TASKS_ERROR,
+  GET_DAILY_TASKS_SUCCESS,
   GET_WEEK_TASKS,
   GET_WEEK_TASKS_ERROR,
   GET_WEEK_TASKS_SUCCESS,
 } from "@/constant/index";
 
 const initialState = {
-  todaysTasks: [],
+  dailyTasks: [],
   weekTasks: [],
   planTasks: [],
   isLoadingTasks: false,
@@ -20,21 +20,21 @@ const initialState = {
 
 export const tasksReducer = (state = initialState, action: any) => {
   switch (action.type) {
-    case GET_TODAYS_TASKS:
+    case GET_DAILY_TASKS:
       return {
         ...state,
         isLoadingTasks: true,
         errorLoadinTasks: false,
       };
 
-    case GET_TODAYS_TASKS_SUCCESS:
+    case GET_DAILY_TASKS_SUCCESS:
       return {
         ...state,
         isLoadingTasks: false,
-        todaysTasks: action.payload,
+        dailyTasks: action.payload,
       };
 
-    case GET_TODAYS_TASKS_ERROR:
+    case GET_DAILY_TASKS_ERROR:
       return {
         ...state,
         isLoadingTasks: false,

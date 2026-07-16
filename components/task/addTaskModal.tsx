@@ -1,4 +1,3 @@
-import { router, useLocalSearchParams } from "expo-router";
 import { Modal, Pressable, TextInput, View, ViewProps } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useContext, useState } from "react";
@@ -7,31 +6,22 @@ import { ThemedText } from "@/components/ThemedText";
 import Col from "@/components/col";
 import Row from "@/components/row";
 import ConfirmButton from "@/components/actionButton/ConfirmButton";
-import RouterView from "../../app/(views)/router-view";
 import { useDispatch } from "react-redux";
 import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
-import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import { getTasksDailyAction } from "@/redux/actions/taskActions";
 import { scheduleTaskNotifications } from "@/services/notification-service";
 import { combineDateAndTime } from "@/utils/date";
 import Toast from "react-native-toast-message";
+import { alarmNotificationService } from "@/lib/notifications";
 
 type Props = ViewProps & {
   showAddModal: boolean;
   setShowAddModal: React.Dispatch<React.SetStateAction<boolean>>;
   date: string;
   view: string;
-  startDate?: string;
-  endDate?: string;
 };
-export default function AddTaskModal({
-  showAddModal,
-  setShowAddModal,
-  date,
-  view,
-  startDate,
-  endDate,
-}: Props) {
+export default function AddTaskModal({ showAddModal, setShowAddModal, date, view }: Props) {
   const colors = useThemeColors();
   const db = useContext(DatabaseContext);
   const disptach = useDispatch();
@@ -116,7 +106,9 @@ export default function AddTaskModal({
           position: "top",
         });
       })
-      .catch(() => {
+      .catch(async () => {
+        const ids = Object.values(notifications);
+        await alarmNotificationService.cancel(ids);
         Toast.show({
           type: "error",
           text1: "Error",
@@ -126,11 +118,9 @@ export default function AddTaskModal({
           position: "top",
         });
       });
-    if (view === "today") disptach<any>(getTasksTodayAction(db));
-    else if (view === "week") {
-      if (startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate));
-    }
+
     setShowAddModal(false);
+    if (view === "today" || view === "week") disptach<any>(getTasksDailyAction(db, date));
   };
 
   return (
@@ -221,7 +211,11 @@ export default function AddTaskModal({
                 Cancel
               </ThemedText>
             </Pressable>
-            <ConfirmButton onPress={handleClick} />
+            <ConfirmButton
+              onPress={() => {
+                handleClick();
+              }}
+            />
           </Row>
         </View>
       </View>

@@ -6,7 +6,7 @@ import {
   finishTask,
   getAllTasks,
   getTasksCurrentCreatedPlan,
-  getTasksToday,
+  getTasksDaily,
   getTasksWeek,
   updateTaskNotificationIds,
 } from "@/database/task/index";
@@ -45,8 +45,8 @@ export const updateNotificationsId = async (
   );
 };
 
-export const getTodayTasksService = async (db: SQLiteDatabase) => {
-  const response = await getTasksToday(db);
+export const getDailyTasksService = async (db: SQLiteDatabase, date: string) => {
+  const response = await getTasksDaily(db, date);
   return response;
 };
 

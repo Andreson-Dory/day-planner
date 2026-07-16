@@ -12,12 +12,11 @@ type Props = TextProps & {
   task: Task;
   view: string;
   db: SQLiteDatabase | null;
-  startDate: string;
-  endDate: string;
+  date: string;
   deleteSetter?: Dispatch<any>;
 };
 
-export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: Props) {
+export function TaskCard({ task, view, db, date, deleteSetter }: Props) {
   const {
     idTask,
     taskStatus,
@@ -58,7 +57,7 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
                 {view === "create_plan" ? null : (
                   <Button
                     type="Finish"
-                    onPress={() => handleFinish(task, db, view, dispatch, startDate, endDate)}
+                    onPress={() => handleFinish(task, db, view, dispatch, date)}
                   />
                 )}
                 <Button
@@ -67,7 +66,7 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
                     if (view === "create_plan") {
                       if (!deleteSetter) return;
                       deleteSetter(task);
-                    } else handleDelete(task, db, view, dispatch, startDate, endDate);
+                    } else handleDelete(task, db, view, dispatch, date);
                   }}
                 />
               </Row>
