@@ -1,56 +1,49 @@
-import { Image, StyleSheet, View } from "react-native";
+import { Image, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 
-type Props =  {
-    subtitle: string, 
-    description: string, 
-    image: any,
-    colorGradientStart: string,
-    colorGradientEnd: string,
-    iconColor: string
-}
+type Props = {
+  subtitle: string;
+  description: string;
+  image: any;
+  colorGradientStart: string;
+  colorGradientEnd: string;
+  iconColor: string;
+};
 
-export default function OptionCard ({ subtitle, description, image ,colorGradientStart, colorGradientEnd, iconColor} : Props) {
-    const colors = useThemeColors();
-    
-    return (
-        <View style={[styles.container, { borderWidth: 0.5, borderColor: colors.cardDescription}]} >
-            <LinearGradient
-              colors={[colorGradientStart, colorGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.gradient}
-            >
-                <Image source={image} style={{ width: 45, height: 40 }} tintColor={iconColor} />
-            </LinearGradient>
-            <View style={[styles.cardContent, {backgroundColor: colors.cardBg}]}>
-                <ThemedText variant="subtitle1" color="cardTitle" style={{ textAlign: "center", marginBottom: 10 }}>{subtitle}</ThemedText>
-                <ThemedText variant="smallText" color="cardDescription" >{description}</ThemedText>
-            </View>
-        </View>
-    )
-}
+export default function OptionCard({
+  subtitle,
+  description,
+  image,
+  colorGradientStart,
+  colorGradientEnd,
+  iconColor,
+}: Props) {
+  const colors = useThemeColors();
 
-const styles = StyleSheet.create({
-    container: {
-        width: 325,
-        height: 200,
-        borderRadius: 20,
-        overflow: "hidden"
-    },
-    gradient: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    cardContent: {
-        flex: 1,
-        backgroundColor: "white",
-        alignItems: "center",
-        justifyContent: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#eee",
-    }
-})
+  return (
+    <View className="w-80 h-48 border-0.5 rounded-3xl overflow-hidden border-slate-600 dark:border-gray-50">
+      <LinearGradient
+        colors={[colorGradientStart, colorGradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        className="flex-1 items-center justify-center"
+      >
+        <Image
+          source={image}
+          tintColor={iconColor}
+          className="w-11 h-10 items-center justify-center"
+        />
+      </LinearGradient>
+      <View className="flex-1 items-center justify-center border-t border-t-gray-200 bg-white dark:bg-slate-400">
+        <ThemedText className="text-2xl leading-none text-center mb-3 text-slate-900 dark:text-slate-50">
+          {subtitle}
+        </ThemedText>
+        <ThemedText className="text-base leading-none text-slate-600 dark:text-gray-50">
+          {description}
+        </ThemedText>
+      </View>
+    </View>
+  );
+}

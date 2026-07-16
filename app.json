@@ -7,7 +7,6 @@
     "icon": "./assets/images/day-planner.png",
     "scheme": "dayplanner",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ando.dayplanner"
@@ -24,11 +23,7 @@
         "USE_EXACT_ALARM"
       ]
     },
-    "plugins": [
-      "expo-router",
-      "expo-sqlite",
-      "@react-native-community/datetimepicker"
-    ],
+    "plugins": ["expo-router", "expo-sqlite", "@react-native-community/datetimepicker"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

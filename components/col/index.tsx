@@ -1,21 +1,9 @@
-import { StyleSheet, View, ViewProps } from "react-native";
+import { View, ViewProps } from "react-native";
 
 type Props = ViewProps & {
-    children: React.ReactNode;
-}
+  children: React.ReactNode;
+};
 
-export default function Col ({ children, style } : Props ) {
-    return (
-        <View style={[styles.col, style]}>
-            {children}
-        </View>
-    )
+export default function Col({ children, className }: Props) {
+  return <View className={`flex-col items-center justify-between ${className}`}>{children}</View>;
 }
-
-const styles = StyleSheet.create ({
-    col: {
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between"
-    }
-}) 

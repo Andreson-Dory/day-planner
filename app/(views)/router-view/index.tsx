@@ -1,28 +1,15 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
-import { StyleSheet, View, ViewProps } from "react-native";
+import { View, ViewProps } from "react-native";
 
 type Props = ViewProps & {
-    style?: ViewProps["style"],
-    children?: React.ReactNode
-}
+  children?: React.ReactNode;
+};
 
-export default function RouterView ({style, children } : Props){
-    const colors = useThemeColors();
-    return(
-        <View style={[styles.appContainer, { backgroundColor: colors.content }, style]}>
-            {children}
-        </View>
-    )
+export default function RouterView({ className, children }: Props) {
+  return (
+    <View
+      className={`flex-1 rounded-2xl mx-1 mt-4 mb-1 bg-slate-100 dark:bg-neutral-800  ${className}`}
+    >
+      {children}
+    </View>
+  );
 }
-
-const styles = StyleSheet.create({
-  appContainer : {
-    flex: 1,
-    borderRadius: 17,
-    borderBottomLeftRadius: 35,
-    borderBottomRightRadius: 35,
-    marginHorizontal: 5,
-    marginTop: 15,
-    marginBottom: 5
-  }
-})

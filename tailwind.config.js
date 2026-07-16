@@ -1,0 +1,61 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+    "./constant/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      spacing: {
+        0.25: "1px",
+        1.25: "5px",
+        1.5: "6px",
+        2.5: "10px",
+        3.75: "15px",
+        4.25: "17px",
+        5.25: "21.32px",
+        5.5: "21.88px",
+        8.5: "35px",
+        8.75: "35px",
+        10.5: "42px",
+      },
+      borderWidth: {
+        0.5: "0.5px",
+      },
+      borderRadius: {
+        4.25: "17px",
+        8.5: "35px",
+      },
+      width: {
+        2: "8px",
+        3: "12px",
+        5.5: "21.88px",
+        11: "44px",
+        24: "96px",
+        28: "112px",
+        40: "160px",
+        42: "168px",
+        80: "320px",
+      },
+      height: {
+        0.5: "2px",
+        2: "8px",
+        2.5: "10px",
+        3: "12px",
+        3.5: "14px",
+        5.25: "21.32px",
+        6: "24px",
+        7: "28px",
+        8: "32px",
+        8.5: "34px",
+        9: "36px",
+        10: "40px",
+        10.5: "42px",
+        48: "192px",
+      },
+    },
+  },
+  plugins: [],
+};

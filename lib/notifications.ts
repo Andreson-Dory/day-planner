@@ -4,8 +4,6 @@ import notifee, {
   AndroidVisibility,
   Trigger,
   TriggerType,
-  EventDetail,
-  EventType,
 } from "@notifee/react-native";
 
 class AlarmNotificationService {
@@ -24,28 +22,6 @@ class AlarmNotificationService {
       visibility: AndroidVisibility.PUBLIC,
       bypassDnd: true,
     });
-  }
-
-  async scheduleReminder(date: Date, title: string, body: string) {
-    const trigger: Trigger = {
-      type: TriggerType.TIMESTAMP,
-      timestamp: date.getTime(),
-      alarmManager: {
-        allowWhileIdle: true,
-      },
-    };
-
-    return await notifee.createTriggerNotification(
-      {
-        title,
-        body,
-        android: {
-          channelId: this.CHANNEL_ID,
-          importance: AndroidImportance.DEFAULT,
-        },
-      },
-      trigger,
-    );
   }
 
   async schedule(date: Date, title: string, body: string) {
