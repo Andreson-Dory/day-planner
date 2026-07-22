@@ -9,6 +9,7 @@ export const Colors = {
     subHeaderTxt: "#ffffff", // white
     blue: "#1e40af", // blue-800 (closest to #005EC9)
     text: "#000000", // black
+    drawerText: "#1d293d",
     infoIcon: "#000000", // black
 
     // Option Card Colors
@@ -87,6 +88,7 @@ export const Colors = {
     subHeaderTxt: "#ffffff", // white
     blue: "#3b82f6", // blue-500
     text: "#f8fafc", // slate-50
+    drawerText: "#f8fafc",
     infoIcon: "#ffffff", // white
 
     // Option Card Colors

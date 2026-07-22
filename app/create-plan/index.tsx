@@ -8,7 +8,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import RouterView from "../router-view";
 import { Calendar } from "react-native-calendars";
 import { useContext, useEffect, useRef, useState } from "react";
 import { SubHeader } from "@/components/headers/SubHeader";
@@ -24,6 +23,8 @@ import { CreateTask } from "@/constant/types/task";
 import { scheduleTaskNotifications } from "@/services/notification-service";
 import { formatLocalDate } from "@/utils/date";
 import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const getDatesInRange = (
   startDate: string,
@@ -78,6 +79,8 @@ const getDatesInRange = (
 };
 
 export default function CreatePlan() {
+  const colors = useThemeColors();
+
   //plan draft vairables
   const { data, setPeriod, addTask, deleteTask, reset } = usePlanDraft();
 
@@ -223,7 +226,6 @@ export default function CreatePlan() {
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [openDays, setOpenDays] = useState<Set<number>>(new Set());
   const [markedDate, setMarkedDate] = useState({});
-  const [refresh, setRefresh] = useState<number>(0);
   const db = useContext(DatabaseContext);
   const currentDate = new Date();
   const initialDate = formatLocalDate(currentDate);
@@ -251,22 +253,22 @@ export default function CreatePlan() {
     });
   };
 
-  const funcRefresh = () => {
-    setRefresh((prev) => prev + 1);
-    setShowMenuModal(false);
-  };
-
   useEffect(() => {
     setMarkedDate(selected.length === 1 ? getDatesInRange(selected[0], setWeekDays) : {});
   }, [selected]);
 
   useEffect(() => {
     setPeriod(weekDays);
-  }, [weekDays]);
+  }, [weekDays, setPeriod]);
 
   return (
-    <View className="flex-1">
-      <RouterView>
+    <LinearGradient
+      colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      className="flex-1"
+    >
+      <View className="flex-1">
         <SubHeader text="Create Plan" type="create" onPress={showModal} ButtonRef={ButtonRef} />
         {/*             Main view of the component               */}
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -386,7 +388,6 @@ export default function CreatePlan() {
                     Ending time
                   </ThemedText>
                   <ThemedText className="text-base leading-none text-gray-950 dark:text-slate-50">
-                    {" "}
                     {endTime === "None"
                       ? "None"
                       : new Date(endTime).toLocaleTimeString([], {
@@ -463,14 +464,6 @@ export default function CreatePlan() {
               </ThemedText>
             </Pressable>
             <Pressable
-              onPress={funcRefresh}
-              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
-            >
-              <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
-                Reload
-              </ThemedText>
-            </Pressable>
-            <Pressable
               onPress={resetData}
               className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
@@ -480,7 +473,7 @@ export default function CreatePlan() {
             </Pressable>
           </View>
         </Modal>
-      </RouterView>
-    </View>
+      </View>
+    </LinearGradient>
   );
 }

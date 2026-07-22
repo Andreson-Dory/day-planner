@@ -1,14 +1,16 @@
-import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Drawer } from "expo-router/drawer";
+import { StatusBar } from "expo-status-bar";
 import { Provider } from "react-redux";
 import Toast from "react-native-toast-message";
+import "@/global.css";
 
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { store } from "@/redux/store";
-import { Header } from "@/components/headers/Header";
 import { DatabaseProvider } from "@/context/databaseProvider";
-import { LinearGradient } from "expo-linear-gradient";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { CustomDrawerContent } from "@/components/drawer/CustomDrawerContent";
+import { CalendarDaysIcon, LayoutDashboard, ListIcon, LucideTagPlus } from "lucide-react-native";
 
 export default function RootLayout() {
   return (
@@ -25,19 +27,60 @@ function RootLayoutWithTheme() {
   const colors = useThemeColors();
   return (
     <Provider store={store}>
-      <LinearGradient
-        colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        className="flex-1"
-      >
-        <SafeAreaView className="flex-1">
-          <Header />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(views)" />
-          </Stack>
+      <SafeAreaProvider>
+        <StatusBar translucent backgroundColor="transparent" style="auto" />
+
+        <SafeAreaView
+          className="flex-1 bg-sky-300 dark:bg-cyan-800"
+          edges={["top", "left", "right"]}
+        >
+          <Drawer
+            screenOptions={{
+              headerShown: false,
+              drawerStyle: { backgroundColor: "transparent", width: "60%" },
+              drawerActiveTintColor: colors.drawerText,
+              drawerInactiveTintColor: colors.drawerText,
+              drawerLabelStyle: {
+                fontSize: 18,
+              },
+            }}
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
+          >
+            <Drawer.Screen
+              name="index"
+              options={{
+                drawerLabel: "Home",
+                title: "Home",
+                drawerIcon: () => <LayoutDashboard size={25} color={colors.drawerText} />,
+              }}
+            />
+            <Drawer.Screen
+              name="today-task/index"
+              options={{
+                drawerLabel: "Today's tasks list",
+                title: "Today tasks",
+                drawerIcon: () => <ListIcon size={25} color={colors.drawerText} />,
+              }}
+            />
+            <Drawer.Screen
+              name="week-task/index"
+              options={{
+                drawerLabel: "Week's tasks list",
+                title: "Week Tasks",
+                drawerIcon: () => <CalendarDaysIcon size={25} color={colors.drawerText} />,
+              }}
+            />
+            <Drawer.Screen
+              name="create-plan/index"
+              options={{
+                drawerLabel: "Create plan",
+                title: "Create plan",
+                drawerIcon: () => <LucideTagPlus size={25} color={colors.drawerText} />,
+              }}
+            />
+          </Drawer>
         </SafeAreaView>
-      </LinearGradient>
+      </SafeAreaProvider>
     </Provider>
   );
 }

@@ -18,7 +18,6 @@ type Props = TextProps & {
 
 export function TaskCard({ task, view, db, date, deleteSetter }: Props) {
   const {
-    idTask,
     taskStatus,
     taskColor,
     borderColor,

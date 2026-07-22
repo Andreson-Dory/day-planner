@@ -1,6 +1,5 @@
 import { Image, View } from "react-native";
 import { ThemedText } from "../ThemedText";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 
 type Props = {
@@ -20,8 +19,6 @@ export default function OptionCard({
   colorGradientEnd,
   iconColor,
 }: Props) {
-  const colors = useThemeColors();
-
   return (
     <View className="w-80 h-48 border-0.5 rounded-3xl overflow-hidden border-slate-600 dark:border-gray-50">
       <LinearGradient

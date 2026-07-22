@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Pressable, TextProps } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";

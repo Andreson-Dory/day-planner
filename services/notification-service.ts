@@ -62,59 +62,63 @@ export async function restoreTaskNotifications(db: SQLiteDatabase, tasks: Task[]
   const now = new Date();
 
   for (const task of tasks) {
-    const startTime = new Date(task.startTime);
-    const endTime = new Date(task.endTime);
+    try {
+      const startTime = new Date(task.startTime);
+      const endTime = new Date(task.endTime);
 
-    // Restore start reminder notification (10 min before start)
-    const startReminderTime = new Date(startTime.getTime() - 10 * 60 * 1000);
-    if (startReminderTime > now && !task.startReminderId) {
-      const startReminderId = await alarmNotificationService.schedule(
-        startReminderTime,
-        "Upcoming Task",
-        `${task.taskTitle} will start in 10 minutes`,
+      const startReminderTime = new Date(startTime.getTime() - 10 * 60 * 1000);
+      if (
+        startReminderTime > now &&
+        !(await alarmNotificationService.isScheduled(task.startReminderId))
+      ) {
+        task.startReminderId = await alarmNotificationService.schedule(
+          startReminderTime,
+          "Upcoming Task",
+          `${task.taskTitle} will start in 10 minutes`,
+        );
+      }
+
+      if (
+        startTime > now &&
+        !(await alarmNotificationService.isScheduled(task.startNotificationId))
+      ) {
+        task.startNotificationId = await alarmNotificationService.schedule(
+          startTime,
+          "Task Started",
+          `${task.taskTitle} is starting now`,
+        );
+      }
+
+      const endReminderTime = new Date(endTime.getTime() - 5 * 60 * 1000);
+      if (
+        endReminderTime > now &&
+        !(await alarmNotificationService.isScheduled(task.endReminderId))
+      ) {
+        task.endReminderId = await alarmNotificationService.schedule(
+          endReminderTime,
+          "Task Ending Soon",
+          `${task.taskTitle} will end in 5 minutes`,
+        );
+      }
+
+      if (endTime > now && !(await alarmNotificationService.isScheduled(task.endNotificationId))) {
+        task.endNotificationId = await alarmNotificationService.schedule(
+          endTime,
+          "Task Finished",
+          `${task.taskTitle} has ended`,
+        );
+      }
+
+      await updateNotificationsId(
+        db,
+        task.idTask,
+        task.startNotificationId,
+        task.endNotificationId,
+        task.startReminderId,
+        task.endReminderId,
       );
-      task.startReminderId = startReminderId;
+    } catch (error) {
+      console.error(`Failed to restore notifications for task ${task.idTask}:`, error);
     }
-
-    // Restore start notification
-    if (startTime > now && !task.startNotificationId) {
-      const startId = await alarmNotificationService.schedule(
-        startTime,
-        "Task Started",
-        `${task.taskTitle} is starting now`,
-      );
-      task.startNotificationId = startId;
-    }
-
-    // Restore end reminder notification (5 min before end)
-    const endReminderTime = new Date(endTime.getTime() - 5 * 60 * 1000);
-    if (endReminderTime > now && !task.endReminderId) {
-      const endReminderId = await alarmNotificationService.schedule(
-        endReminderTime,
-        "Task Ending Soon",
-        `${task.taskTitle} will end in 5 minutes`,
-      );
-      task.endReminderId = endReminderId;
-    }
-
-    // Restore end notification
-    if (endTime > now && !task.endNotificationId) {
-      const endId = await alarmNotificationService.schedule(
-        endTime,
-        "Task Finished",
-        `${task.taskTitle} has ended`,
-      );
-      task.endNotificationId = endId;
-    }
-
-    // Update all notification IDs in DB
-    await updateNotificationsId(
-      db,
-      task.idTask,
-      task.startNotificationId,
-      task.endNotificationId,
-      task.startReminderId,
-      task.endReminderId,
-    );
   }
 }

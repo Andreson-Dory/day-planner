@@ -1,5 +1,4 @@
 import { ScrollView, TextProps, View } from "react-native";
-import RouterView from "../router-view";
 import { useContext, useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
@@ -14,6 +13,8 @@ import { Task } from "@/constant/types/task";
 import { TaskCard } from "@/components/task/Task";
 import { formatLocalDate } from "@/utils/date";
 import AddTaskModal from "@/components/task/addTaskModal";
+import { LinearGradient } from "expo-linear-gradient";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Props = TextProps & {
   tasks: Task[];
@@ -36,6 +37,7 @@ export default function TodayTask() {
   const db = useContext(DatabaseContext);
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
   const tasks: Task[] = useAppSelector((state) => state.tasks.dailyTasks);
+  const colors = useThemeColors();
   const [showAddTaskModal, setShowAddTaskModal] = useState<boolean>(false);
   const today = new Date();
   const todayString = formatLocalDate(today);
@@ -43,15 +45,20 @@ export default function TodayTask() {
   useEffect(() => {
     if (!db) return;
     dispatch<any>(getTasksDailyAction(db, todayString));
-  }, [db, dispatch]);
+  }, [db, dispatch, todayString]);
 
   useEffect(() => {
     setTasks(tasks);
-  }, [tasks]);
+  }, [setTasks, tasks]);
 
   return (
-    <View className="flex-1">
-      <RouterView>
+    <LinearGradient
+      colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      className="flex-1"
+    >
+      <View className="flex-1">
         <SubHeader
           text="Today Task"
           type="today"
@@ -75,7 +82,7 @@ export default function TodayTask() {
           date={formatLocalDate(new Date())}
           view="today"
         />
-      </RouterView>
-    </View>
+      </View>
+    </LinearGradient>
   );
 }

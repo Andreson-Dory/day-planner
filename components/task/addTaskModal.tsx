@@ -1,7 +1,6 @@
 import { Modal, Pressable, TextInput, View, ViewProps } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useContext, useState } from "react";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { ThemedText } from "@/components/ThemedText";
 import Col from "@/components/col";
 import Row from "@/components/row";
@@ -22,7 +21,6 @@ type Props = ViewProps & {
   view: string;
 };
 export default function AddTaskModal({ showAddModal, setShowAddModal, date, view }: Props) {
-  const colors = useThemeColors();
   const db = useContext(DatabaseContext);
   const disptach = useDispatch();
   const [show, setShow] = useState(false);

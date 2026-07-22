@@ -1,5 +1,4 @@
 import { Dimensions, Modal, Pressable, ScrollView, TextProps, View } from "react-native";
-import RouterView from "../router-view";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { ThemedText } from "@/components/ThemedText";
@@ -15,16 +14,13 @@ import { TaskCard } from "@/components/task/Task";
 import { Task } from "@/constant/types/task";
 import { formatLocalDate } from "@/utils/date";
 import AddTaskModal from "@/components/task/addTaskModal";
+import { LinearGradient } from "expo-linear-gradient";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Props = TextProps & {
   dailyTasks: Task[];
   currentDate: string;
   db: SQLiteDatabase | null;
-};
-
-type getDateProps = {
-  setWeekDays: React.Dispatch<React.SetStateAction<string[]>>;
-  setWeekDaysCompleted: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const getDateString = (date: string) => {
@@ -41,7 +37,11 @@ const getWeekDay = (date: string) => {
   });
 };
 
-const getDatesInRange = ({ setWeekDays, setWeekDaysCompleted }: getDateProps) => {
+const getDatesInRange = ({
+  setWeekDays,
+}: {
+  setWeekDays: React.Dispatch<React.SetStateAction<string[]>>;
+}) => {
   setWeekDays([]);
   let currentDate = new Date();
 
@@ -55,7 +55,6 @@ const getDatesInRange = ({ setWeekDays, setWeekDaysCompleted }: getDateProps) =>
     setWeekDays((prev) => [...prev, dateString]);
     firstWeekDate.setDate(firstWeekDate.getDate() + 1);
   }
-  setWeekDaysCompleted(true);
 };
 
 function Contents({ dailyTasks, currentDate, db }: Props) {
@@ -69,23 +68,21 @@ function Contents({ dailyTasks, currentDate, db }: Props) {
 }
 
 export default function WeekTask() {
+  const colors = useThemeColors();
   const db = useContext(DatabaseContext);
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
   const dispatch = useDispatch();
   const tasks = useAppSelector<Task[]>((state) => state.tasks.dailyTasks);
   const [weekDays, setWeekDays] = useState<string[]>([]);
-  const [loadingCurrentWeek, setLoadingCurrentWeek] = useState<boolean>(true);
   const now = formatLocalDate(new Date());
   const [selectedDay, setSelectedDay] = useState<string>(now);
   const [showAddTaskModal, setShowAddTaskModal] = useState<boolean>(false);
-  const [weekDaysCompleted, setWeekDaysCompleted] = useState<boolean>(false);
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [position, setPosition] = useState<null | { top: number; right: number }>(null);
   const ButtonRef = useRef<View>(null) as React.RefObject<View>;
 
   useEffect(() => {
-    getDatesInRange({ setWeekDays, setWeekDaysCompleted });
-    setLoadingCurrentWeek(false);
+    getDatesInRange({ setWeekDays });
   }, []);
 
   useEffect(() => {
@@ -93,11 +90,11 @@ export default function WeekTask() {
     if (!selectedDay) return;
 
     dispatch<any>(getTasksDailyAction(db, selectedDay));
-  }, [db, selectedDay]);
+  }, [db, dispatch, selectedDay]);
 
   useEffect(() => {
     setTasks(tasks);
-  }, [tasks]);
+  }, [setTasks, tasks]);
 
   const showModal = () => {
     ButtonRef.current?.measureInWindow((x, y, width, height) => {
@@ -110,8 +107,13 @@ export default function WeekTask() {
   };
 
   return (
-    <View className="flex-1">
-      <RouterView>
+    <LinearGradient
+      colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      className="flex-1"
+    >
+      <View className="flex-1">
         <SubHeader
           text={getDateString(selectedDay)}
           type="week"
@@ -132,42 +134,43 @@ export default function WeekTask() {
           date={selectedDay}
           view="week"
         />
-      </RouterView>
-      {/*             Modal for popup options                 */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showMenuModal}
-        onRequestClose={() => setShowMenuModal(!showMenuModal)}
-      >
-        <Pressable
-          className="flex-1 bg-black/30"
-          onPress={() => setShowMenuModal(!showMenuModal)}
-        />
-        <View
-          className="absolute w-44 p-2 -mr-2 -mt-1 rounded-2xl gap-2 bg-slate-100 dark:bg-slate-800"
-          style={position}
+        {/*             Modal for popup options                 */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showMenuModal}
+          onRequestClose={() => setShowMenuModal(!showMenuModal)}
         >
-          {weekDays.map((day) => {
-            return (
-              <Pressable
-                onPress={() => {
-                  setSelectedDay(day);
-                  setShowMenuModal(false);
-                }}
-                className="p-3 rounded-xl border border-slate-500 dark:border-slate-300"
-              >
-                <ThemedText
+          <Pressable
+            className="flex-1 bg-black/30"
+            onPress={() => setShowMenuModal(!showMenuModal)}
+          />
+          <View
+            className="absolute w-44 p-2 -mr-2 -mt-1 rounded-2xl gap-2 bg-slate-100 dark:bg-slate-800"
+            style={position}
+          >
+            {weekDays.map((day) => {
+              return (
+                <Pressable
                   key={day}
-                  className="text-xl leading-none text-center text-gray-950 dark:text-slate-50"
+                  onPress={() => {
+                    setSelectedDay(day);
+                    setShowMenuModal(false);
+                  }}
+                  className="p-3 rounded-xl border border-slate-500 dark:border-slate-300"
                 >
-                  {getWeekDay(day)}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Modal>
-    </View>
+                  <ThemedText
+                    key={day}
+                    className="text-xl leading-none text-center text-gray-950 dark:text-slate-50"
+                  >
+                    {getWeekDay(day)}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Modal>
+      </View>
+    </LinearGradient>
   );
 }
