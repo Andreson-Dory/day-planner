@@ -1,38 +1,25 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { Modal, Pressable, TextInput, View, ViewProps } from "react-native";
+import { Modal, Pressable, Switch, TextInput, View, ViewProps } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useContext, useState } from "react";
-import { useThemeColors } from "@/hooks/useThemeColors";
+import { useContext, useEffect, useState } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import Col from "@/components/col";
 import Row from "@/components/row";
-import ConfirmButton from "@/components/actionButton/ConfirmButton";
-import RouterView from "../../app/(views)/router-view";
 import { useDispatch } from "react-redux";
 import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
-import { getTasksTodayAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import { getRepetitiveTasksAction, getTasksDailyAction } from "@/redux/actions/taskActions";
 import { scheduleTaskNotifications } from "@/services/notification-service";
 import { combineDateAndTime } from "@/utils/date";
 import Toast from "react-native-toast-message";
+import { alarmNotificationService } from "@/lib/notifications";
 
 type Props = ViewProps & {
   showAddModal: boolean;
   setShowAddModal: React.Dispatch<React.SetStateAction<boolean>>;
   date: string;
   view: string;
-  startDate?: string;
-  endDate?: string;
 };
-export default function AddTaskModal({
-  showAddModal,
-  setShowAddModal,
-  date,
-  view,
-  startDate,
-  endDate,
-}: Props) {
-  const colors = useThemeColors();
+export default function AddTaskModal({ showAddModal, setShowAddModal, date, view }: Props) {
   const db = useContext(DatabaseContext);
   const disptach = useDispatch();
   const [show, setShow] = useState(false);
@@ -40,6 +27,9 @@ export default function AddTaskModal({
   const [title, setTitle] = useState<string>("");
   const [startTime, setStartTime] = useState<string>("None");
   const [endTime, setEndTime] = useState<string>("None");
+  const [isRepetitive, setIsRepetitive] = useState(false);
+  const [repeatType, setRepeatType] = useState<"daily" | "weekly" | "monthly" | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const onChange = (event: any, selectedTime: any) => {
     const currentTime = selectedTime;
@@ -49,6 +39,14 @@ export default function AddTaskModal({
       setEndTime(combineDateAndTime(date, currentTime));
     }
     setShow(false);
+  };
+
+  const resetValue = () => {
+    setTitle("");
+    setStartTime("None");
+    setEndTime("None");
+    setIsRepetitive(false);
+    setRepeatType(null);
   };
 
   const handleClick = async () => {
@@ -61,6 +59,7 @@ export default function AddTaskModal({
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
     if (startTime === "None" || endTime === "None" || new Date(startTime) >= new Date(endTime)) {
@@ -72,6 +71,7 @@ export default function AddTaskModal({
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
     if (!db) {
@@ -83,6 +83,7 @@ export default function AddTaskModal({
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
 
@@ -92,6 +93,8 @@ export default function AddTaskModal({
       startTime: startTime,
       endTime: endTime,
       taskDate: date,
+      isRepetitive: isRepetitive ? 1 : 0,
+      repeatType: isRepetitive ? repeatType : null,
       startNotificationId: "",
       endNotificationId: "",
       startReminderId: "",
@@ -116,7 +119,9 @@ export default function AddTaskModal({
           position: "top",
         });
       })
-      .catch(() => {
+      .catch(async () => {
+        const ids = Object.values(notifications);
+        await alarmNotificationService.cancel(ids);
         Toast.show({
           type: "error",
           text1: "Error",
@@ -126,11 +131,12 @@ export default function AddTaskModal({
           position: "top",
         });
       });
-    if (view === "today") disptach<any>(getTasksTodayAction(db));
-    else if (view === "week") {
-      if (startDate && endDate) disptach<any>(getTasksWeekAction(db, startDate, endDate));
-    }
+
+    resetValue();
     setShowAddModal(false);
+    setIsSaving(false);
+    if (view === "today" || view === "week") disptach<any>(getTasksDailyAction(db, date));
+    else if (view === "repetitive") disptach<any>(getRepetitiveTasksAction(db));
   };
 
   return (
@@ -138,7 +144,10 @@ export default function AddTaskModal({
       animationType="slide"
       transparent={true}
       visible={showAddModal}
-      onRequestClose={() => setShowAddModal(!showAddModal)}
+      onRequestClose={() => {
+        setShowAddModal(!showAddModal);
+        resetValue();
+      }}
     >
       <View className="flex-1 justify-center items-center">
         <View className="py-5 rounded-4.25 mx-4 bg-cyan-50 dark:bg-cyan-950">
@@ -202,6 +211,42 @@ export default function AddTaskModal({
                 </ThemedText>
               </Pressable>
             </Row>
+            <Row className="w-full gap-0 items-center">
+              <ThemedText className="text-lg leading-none text-gray-950 dark:text-slate-50">
+                Repeat
+              </ThemedText>
+              <Switch
+                value={isRepetitive}
+                onValueChange={() => {
+                  if (!isRepetitive) {
+                    setRepeatType(null);
+                  }
+                  setIsRepetitive(!isRepetitive);
+                }}
+              />
+            </Row>
+
+            {isRepetitive && (
+              <Row className="w-full gap-2">
+                {(["daily", "weekly", "monthly"] as const).map((type) => (
+                  <Pressable
+                    key={type}
+                    onPress={() => setRepeatType(type)}
+                    className={`px-3 py-1.5 rounded-lg ${
+                      repeatType === type ? "bg-blue-500" : "bg-slate-300/40 dark:bg-slate-400/20"
+                    }`}
+                  >
+                    <ThemedText
+                      className={
+                        repeatType === type ? "text-white" : "text-blue-500 dark:text-blue-400"
+                      }
+                    >
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </Row>
+            )}
           </Col>
           {show && (
             <DateTimePicker
@@ -214,14 +259,29 @@ export default function AddTaskModal({
           )}
           <Row className="px-4">
             <Pressable
-              onPress={() => setShowAddModal(false)}
+              onPress={() => {
+                setShowAddModal(false);
+                resetValue();
+              }}
               className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
             >
               <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
                 Cancel
               </ThemedText>
             </Pressable>
-            <ConfirmButton onPress={handleClick} />
+
+            <Pressable
+              onPress={() => {
+                setIsSaving(true);
+                handleClick();
+              }}
+              disabled={isSaving}
+              className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
+            >
+              <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
+                Confirm
+              </ThemedText>
+            </Pressable>
           </Row>
         </View>
       </View>

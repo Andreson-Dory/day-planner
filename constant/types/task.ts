@@ -4,6 +4,8 @@ export interface CreateTask {
   startTime: string;
   endTime: string;
   taskDate: string;
+  isRepetitive: number;
+  repeatType: "daily" | "weekly" | "monthly" | null;
   startNotificationId: string;
   endNotificationId: string;
   startReminderId: string;
@@ -17,6 +19,8 @@ export interface Task {
   endTime: string;
   taskDate: string;
   isCompleted: number;
+  isRepetitive: number;
+  repeatType: "daily" | "weekly" | "monthly" | null;
   startNotificationId: string;
   endNotificationId: string;
   startReminderId: string;

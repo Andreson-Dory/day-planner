@@ -1,66 +1,61 @@
-import { ScrollView, TextProps, View } from "react-native";
-import RouterView from "../router-view";
-import { useContext, useEffect, useState } from "react";
+import { View } from "react-native";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
 import { AddButton } from "@/components/actionButton/AddButton";
 import { useDispatch } from "react-redux";
-import { getTasksTodayAction } from "@/redux/actions/taskActions";
+import { getTasksDailyAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
-import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { Task } from "@/constant/types/task";
-import { TaskCard } from "@/components/task/Task";
 import { formatLocalDate } from "@/utils/date";
 import AddTaskModal from "@/components/task/addTaskModal";
-
-type Props = TextProps & {
-  tasks: Task[];
-  db: SQLiteDatabase | null;
-};
-
-function Contents({ tasks, db }: Props) {
-  return (
-    <View>
-      {tasks.map((task) => (
-        <TaskCard key={task.idTask} task={task} view="today" startDate="" endDate="" db={db} />
-      ))}
-    </View>
-  );
-}
+import { LinearGradient } from "expo-linear-gradient";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useFocusEffect } from "expo-router";
+import { TasksContainer } from "@/components/task/TasksContainer";
 
 export default function TodayTask() {
   const dispatch = useDispatch();
   const db = useContext(DatabaseContext);
   const { filteredTasks, filter, setTasks, setFilter } = useStatusHeader();
-  const tasks: Task[] = useAppSelector((state) => state.tasks.todaysTasks);
+  const tasks: Task[] = useAppSelector((state) => state.tasks.dailyTasks);
+  const colors = useThemeColors();
   const [showAddTaskModal, setShowAddTaskModal] = useState<boolean>(false);
+  const today = new Date();
+  const todayString = formatLocalDate(today);
 
-  useEffect(() => {
-    if (!db) return;
-    dispatch<any>(getTasksTodayAction(db));
-  }, [db, dispatch]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!db) return;
+      dispatch<any>(getTasksDailyAction(db, todayString));
+    }, [db, dispatch, todayString]),
+  );
 
   useEffect(() => {
     setTasks(tasks);
-  }, [tasks]);
+  }, [setTasks, tasks]);
 
   return (
-    <View className="flex-1">
-      <RouterView>
+    <LinearGradient
+      colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={{ flex: 1 }}
+    >
+      <View className="flex-1">
         <SubHeader
           text="Today Task"
+          type="today"
           onPress={() => {
             if (db) {
-              dispatch<any>(getTasksTodayAction(db));
+              dispatch<any>(getTasksDailyAction(db, todayString));
             }
           }}
         />
         <StatusHeader filter={filter} setFilter={setFilter} />
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-5">
-          <Contents tasks={filteredTasks} db={db} />
-        </ScrollView>
+        <TasksContainer dailyTasks={filteredTasks} view="today" db={db} currentDate={todayString} />
         <AddButton
           className="bottom-3.75 left-0 right-0 z-10"
           onPress={() => setShowAddTaskModal(true)}
@@ -71,7 +66,7 @@ export default function TodayTask() {
           date={formatLocalDate(new Date())}
           view="today"
         />
-      </RouterView>
-    </View>
+      </View>
+    </LinearGradient>
   );
 }

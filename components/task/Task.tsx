@@ -12,14 +12,12 @@ type Props = TextProps & {
   task: Task;
   view: string;
   db: SQLiteDatabase | null;
-  startDate: string;
-  endDate: string;
+  date: string;
   deleteSetter?: Dispatch<any>;
 };
 
-export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: Props) {
+export function TaskCard({ task, view, db, date, deleteSetter }: Props) {
   const {
-    idTask,
     taskStatus,
     taskColor,
     borderColor,
@@ -45,20 +43,25 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
             <View className="items-start">
               <StatusBadge status={taskStatus} />
             </View>
-            <View className="flex-row gap-0.25 my-1.25 mx-2.5">
-              <ThemedText className="text-base leading-none font-thin text-slate-950 dark:text-slate-50">
-                {startTimeStr} - {endTimeStr}{" "}
-              </ThemedText>
-              <ThemedText className="text-base leading-none font-bold text-slate-500 dark:text-slate-300">
-                ({durationStr})
+            <View className="flex-row items-start justify-between gap-0.25 my-1.25 mx-2.5">
+              <View className="flex-row gap-0.25 my-1.25 mx-2.5">
+                <ThemedText className="text-base leading-none font-thin text-slate-950 dark:text-slate-50">
+                  {startTimeStr} - {endTimeStr}{" "}
+                </ThemedText>
+                <ThemedText className="text-base leading-none font-bold text-slate-500 dark:text-slate-300">
+                  ({durationStr})
+                </ThemedText>
+              </View>
+              <ThemedText className="text-xl leading-none font-bold text-slate-500 dark:text-slate-300">
+                {task.isRepetitive ? task.repeatType?.toUpperCase() : ""}
               </ThemedText>
             </View>
-            {taskStatus !== "completed" && (
+            {taskStatus !== "completed" && view !== "dashboard" && (
               <Row>
                 {view === "create_plan" ? null : (
                   <Button
                     type="Finish"
-                    onPress={() => handleFinish(task, db, view, dispatch, startDate, endDate)}
+                    onPress={() => handleFinish(task, db, view, dispatch, date)}
                   />
                 )}
                 <Button
@@ -67,7 +70,7 @@ export function TaskCard({ task, view, db, startDate, endDate, deleteSetter }: P
                     if (view === "create_plan") {
                       if (!deleteSetter) return;
                       deleteSetter(task);
-                    } else handleDelete(task, db, view, dispatch, startDate, endDate);
+                    } else handleDelete(task, db, view, dispatch, date);
                   }}
                 />
               </Row>

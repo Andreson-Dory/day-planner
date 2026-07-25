@@ -2,30 +2,34 @@ import {
   GET_PLAN_TASKS,
   GET_PLAN_TASKS_ERROR,
   GET_PLAN_TASKS_SUCCESS,
-  GET_TODAYS_TASKS,
-  GET_TODAYS_TASKS_ERROR,
-  GET_TODAYS_TASKS_SUCCESS,
+  GET_DAILY_TASKS,
+  GET_DAILY_TASKS_ERROR,
+  GET_DAILY_TASKS_SUCCESS,
   GET_WEEK_TASKS,
   GET_WEEK_TASKS_ERROR,
   GET_WEEK_TASKS_SUCCESS,
+  GET_REPETITIVE_TASKS,
+  GET_REPETITIVE_TASKS_SUCCESS,
+  GET_REPETITIVE_TASKS_ERROR,
 } from "@/constant";
 import {
+  fetchRepetitiveTasks,
   getCurrentCreatedPlanTaskService,
-  getTodayTasksService,
+  getDailyTasksService,
   getWeekTasksService,
 } from "@/services/task-sevices";
 import { SQLiteDatabase } from "expo-sqlite";
 import { Dispatch } from "react";
 
-export const getTasksTodayAction = (db: SQLiteDatabase) => {
+export const getTasksDailyAction = (db: SQLiteDatabase, date: string) => {
   return async (disptach: Dispatch<any>) => {
-    disptach({ type: GET_TODAYS_TASKS });
+    disptach({ type: GET_DAILY_TASKS });
     try {
-      const response = await getTodayTasksService(db);
-      disptach({ type: GET_TODAYS_TASKS_SUCCESS, payload: response });
+      const response = await getDailyTasksService(db, date);
+      disptach({ type: GET_DAILY_TASKS_SUCCESS, payload: response });
     } catch (error) {
       console.error(error);
-      disptach({ type: GET_TODAYS_TASKS_ERROR });
+      disptach({ type: GET_DAILY_TASKS_ERROR });
     }
   };
 };
@@ -54,6 +58,19 @@ export const getTasksCurrentCreatedPlanAction = (db: SQLiteDatabase, startDate: 
     } catch (error) {
       console.error(error);
       disptach({ type: GET_PLAN_TASKS_ERROR });
+    }
+  };
+};
+
+export const getRepetitiveTasksAction = (db: SQLiteDatabase) => {
+  return async (disptach: Dispatch<any>) => {
+    disptach({ type: GET_REPETITIVE_TASKS });
+    try {
+      const response = await fetchRepetitiveTasks(db);
+      disptach({ type: GET_REPETITIVE_TASKS_SUCCESS, payload: response });
+    } catch (error) {
+      console.error(error);
+      disptach({ type: GET_REPETITIVE_TASKS_ERROR });
     }
   };
 };

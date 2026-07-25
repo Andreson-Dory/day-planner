@@ -1,20 +1,18 @@
 import {
   Alert,
   Dimensions,
-  Image,
   Modal,
   Pressable,
   ScrollView,
+  Switch,
   TextInput,
   View,
 } from "react-native";
-import RouterView from "../router-view";
 import { Calendar } from "react-native-calendars";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { SubHeader } from "@/components/headers/SubHeader";
 import { ThemedText } from "@/components/ThemedText";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { usePlanDraft } from "@/hooks/usePlanDraft";
 import Row from "@/components/row";
 import Col from "@/components/col";
@@ -23,62 +21,18 @@ import { addArrayOfTaskService } from "@/services/task-sevices";
 import { TaskCard } from "@/components/task/Task";
 import { CreateTask } from "@/constant/types/task";
 import { scheduleTaskNotifications } from "@/services/notification-service";
-import { formatLocalDate } from "@/utils/date";
+import { formatLocalDate, getDatesInRangeCreatePlan } from "@/utils/date";
 import Toast from "react-native-toast-message";
-
-const getDatesInRange = (
-  startDate: string,
-  setWeekDays: React.Dispatch<React.SetStateAction<string[]>>,
-) => {
-  const dates: Record<string, any> = {};
-  setWeekDays([]);
-  let currentDate = new Date(startDate);
-
-  const dayOfCurrentWeek = currentDate.getDay();
-  if (dayOfCurrentWeek === 0) {
-    const dateString = formatLocalDate(currentDate);
-    setWeekDays((prev) => [...prev, dateString]);
-    dates[dateString] = {
-      startingDay: true,
-      endingDay: true,
-      color: "orange",
-      textColor: "white",
-    };
-    return dates;
-  }
-
-  const firstWeekDate = new Date(currentDate);
-  const lastWeekDate = new Date(currentDate);
-  firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1);
-  lastWeekDate.setDate(firstWeekDate.getDate() + 6);
-  const endDate = formatLocalDate(lastWeekDate);
-
-  while (currentDate <= lastWeekDate) {
-    const dateString = formatLocalDate(currentDate);
-    setWeekDays((prev) => [...prev, dateString]);
-    dates[dateString] = {
-      color: "orange",
-      textColor: "white",
-    };
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  dates[startDate] = {
-    startingDay: true,
-    color: "orange",
-    textColor: "white",
-  };
-
-  dates[endDate] = {
-    endingDay: true,
-    color: "orange",
-    textColor: "white",
-  };
-
-  return dates;
-};
+import { LinearGradient } from "expo-linear-gradient";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { PlusIcon } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 export default function CreatePlan() {
+  const colors = useThemeColors();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme.colorScheme === "dark";
+
   //plan draft vairables
   const { data, setPeriod, addTask, deleteTask, reset } = usePlanDraft();
 
@@ -94,11 +48,14 @@ export default function CreatePlan() {
   const [provisionalId, setProvisionalId] = useState<number>(1);
   const [position, setPosition] = useState<null | { top: number; right: number }>(null);
   const ButtonRef = useRef<View>(null) as React.RefObject<View>;
+  const [isRepetitive, setIsRepetitive] = useState(false);
+  const [repeatType, setRepeatType] = useState<"daily" | "weekly" | "monthly" | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const showModal = () => {
     ButtonRef.current?.measureInWindow((x, y, width, height) => {
       setPosition({
-        top: y + height * 4,
+        top: y + height + 10,
         right: Dimensions.get("window").width - x - width,
       });
       setShowMenuModal(true);
@@ -122,6 +79,14 @@ export default function CreatePlan() {
     setShowMenuModal(false);
   };
 
+  const resetValue = () => {
+    setTitle("");
+    setStartTime("None");
+    setEndTime("None");
+    setIsRepetitive(false);
+    setRepeatType(null);
+  };
+
   const save = async (datas: Record<string, CreateTask[]>) => {
     if (!db) {
       Alert.alert("Warning!", "Not connected to the database!");
@@ -129,19 +94,20 @@ export default function CreatePlan() {
     }
     const arrayData = Object.values(datas).flat();
 
-    arrayData.map(async (task) => {
-      const notifications = await scheduleTaskNotifications(task);
+    const tasksWithNotifications = await Promise.all(
+      arrayData.map(async (task) => {
+        const notifications = await scheduleTaskNotifications(task);
+        return {
+          ...task,
+          startNotificationId: notifications.startId,
+          endNotificationId: notifications.endId,
+          startReminderId: notifications.startReminderId,
+          endReminderId: notifications.endReminderId,
+        };
+      }),
+    );
 
-      return {
-        ...task,
-        startNotificationId: notifications.startId,
-        endNotificationId: notifications.endId,
-        startReminderId: notifications.startReminderId,
-        endReminderId: notifications.endReminderId,
-      };
-    });
-
-    await addArrayOfTaskService(db, arrayData)
+    await addArrayOfTaskService(db, tasksWithNotifications)
       .then(() => {
         Toast.show({
           type: "success",
@@ -175,6 +141,7 @@ export default function CreatePlan() {
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
     if (startTime === "None" || endTime === "None" || new Date(startTime) >= new Date(endTime)) {
@@ -186,6 +153,7 @@ export default function CreatePlan() {
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
     if (!newTaskDate) {
@@ -197,6 +165,7 @@ export default function CreatePlan() {
         text2Style: { fontSize: 14 },
         position: "top",
       });
+      setIsSaving(false);
       return;
     }
 
@@ -207,6 +176,8 @@ export default function CreatePlan() {
       startTime: startTime,
       endTime: endTime,
       taskDate: newTaskDate,
+      isRepetitive: isRepetitive ? 1 : 0,
+      repeatType: isRepetitive ? repeatType : null,
       startNotificationId: "",
       endNotificationId: "",
       startReminderId: "",
@@ -215,7 +186,9 @@ export default function CreatePlan() {
       updatedAt: new Date(),
     };
     addTask(newTaskDate, newTask);
-    setShowAddModal(!showAddModal);
+    resetValue();
+    setShowAddModal(false);
+    setIsSaving(false);
     setProvisionalId((prev) => prev + 1);
   };
 
@@ -224,7 +197,6 @@ export default function CreatePlan() {
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [openDays, setOpenDays] = useState<Set<number>>(new Set());
   const [markedDate, setMarkedDate] = useState({});
-  const [refresh, setRefresh] = useState<number>(0);
   const db = useContext(DatabaseContext);
   const currentDate = new Date();
   const initialDate = formatLocalDate(currentDate);
@@ -252,45 +224,93 @@ export default function CreatePlan() {
     });
   };
 
-  const funcRefresh = () => {
-    setRefresh((prev) => prev + 1);
-    setShowMenuModal(false);
-  };
-
   useEffect(() => {
-    setMarkedDate(selected.length === 1 ? getDatesInRange(selected[0], setWeekDays) : {});
+    setMarkedDate(selected.length === 1 ? getDatesInRangeCreatePlan(selected[0], setWeekDays) : {});
   }, [selected]);
 
   useEffect(() => {
     setPeriod(weekDays);
-  }, [weekDays]);
+  }, [weekDays, setPeriod]);
+
+  const calendarTheme = useMemo(
+    () => ({
+      backgroundColor: "transparent",
+      calendarBackground: "transparent",
+
+      // Header (month/year + arrows)
+      monthTextColor: "#3b82f6",
+      textMonthFontWeight: "700" as const,
+      textMonthFontSize: 18,
+      arrowColor: "#3b82f6",
+
+      // Day names row (S M T W ...)
+      textSectionTitleColor: "#94a3b8",
+      textDayHeaderFontWeight: "600" as const,
+      textDayHeaderFontSize: 12,
+
+      // Day numbers
+      dayTextColor: "#1e293b",
+      textDayFontWeight: "500" as const,
+      textDayFontSize: 15,
+      textDisabledColor: "#cbd5e1",
+
+      // Today
+      todayTextColor: "#3b82f6",
+      todayBackgroundColor: isDark ? "#1e3a5f" : "#dbeafe",
+
+      // Selected / marked period
+      selectedDayBackgroundColor: "#3b82f6",
+      selectedDayTextColor: "#ffffff",
+      dotColor: "#3b82f6",
+
+      // Misc
+      "stylesheet.calendar.header": {
+        week: {
+          marginTop: 5,
+          flexDirection: "row" as const,
+          justifyContent: "space-between" as const,
+        },
+      },
+    }),
+    [isDark],
+  );
 
   return (
-    <View className="flex-1">
-      <RouterView>
-        <SubHeader text="Create Plan" onPress={showModal} ButtonRef={ButtonRef} />
+    <LinearGradient
+      colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={{ flex: 1 }}
+    >
+      <View className="flex-1">
+        <SubHeader text="Create Plan" type="create" onPress={showModal} ButtonRef={ButtonRef} />
         {/*             Main view of the component               */}
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Calendar
-            initialDate={initialDate}
-            minDate={initialDate}
-            hideExtraDays={false}
-            showSixWeeks={false}
-            onDayPress={(day) => {
-              datesPeriod(day.dateString);
-            }}
-            markingType="period"
-            markedDates={{
-              [initialDate]: { today: true, textColor: "blue" },
-              ...markedDate,
-            }}
+          <View
             style={{
               width: "95%",
               alignSelf: "center",
               margin: 10,
-              borderColor: "#49a6f8b8",
+              borderRadius: 20,
+              backgroundColor: isDark ? "rgba(30, 41, 59, 0.6)" : "rgba(255, 255, 255, 0.85)",
             }}
-          />
+          >
+            <Calendar
+              initialDate={initialDate}
+              minDate={initialDate}
+              hideExtraDays={false}
+              showSixWeeks={false}
+              onDayPress={(day) => {
+                datesPeriod(day.dateString);
+              }}
+              markingType="period"
+              markedDates={{
+                [initialDate]: { today: true, textColor: "#3b82f6" },
+                ...markedDate,
+              }}
+              theme={calendarTheme}
+            />
+          </View>
           <View className="mb-0.5">
             {weekDays.map((day, index) => (
               <View key={index} className="flex-col gap-1 mt-2 mx-2">
@@ -311,8 +331,7 @@ export default function CreatePlan() {
                         key={task.idTask}
                         task={task}
                         view="create_plan"
-                        startDate={weekDays[0]}
-                        endDate={weekDays[6]}
+                        date={weekDays[0]}
                         db={db}
                         deleteSetter={deleteTask}
                       />
@@ -324,7 +343,7 @@ export default function CreatePlan() {
                       }}
                     >
                       <View className="flex-row justify-center items-center h-12 mx-1 rounded-2xl gap-2 border border-dashed border-blue-500 dark:border-blue-400 bg-slate-300/40 dark:bg-slate-400/20 text-blue-500 dark:text-blue-400">
-                        <Image source={require("@/assets/images/add.png")} className="w-6 h-5" />
+                        <PlusIcon size={25} color={colors.blue} />
                         <ThemedText className="text-xl leading-none w-1/4 text-blue-500 dark:text-blue-400">
                           Add New Task
                         </ThemedText>
@@ -342,7 +361,10 @@ export default function CreatePlan() {
           animationType="slide"
           transparent={true}
           visible={showAddModal}
-          onRequestClose={() => setShowAddModal(!showAddModal)}
+          onRequestClose={() => {
+            setShowAddModal(!showAddModal);
+            resetValue();
+          }}
         >
           <View className="flex-1 justify-center items-center">
             <View className="py-5 rounded-4.25 mx-4 bg-cyan-50 dark:bg-cyan-950">
@@ -388,7 +410,6 @@ export default function CreatePlan() {
                     Ending time
                   </ThemedText>
                   <ThemedText className="text-base leading-none text-gray-950 dark:text-slate-50">
-                    {" "}
                     {endTime === "None"
                       ? "None"
                       : new Date(endTime).toLocaleTimeString([], {
@@ -407,6 +428,44 @@ export default function CreatePlan() {
                     </ThemedText>
                   </Pressable>
                 </Row>
+                <Row className="w-full gap-0 items-center">
+                  <ThemedText className="text-lg leading-none text-gray-950 dark:text-slate-50">
+                    Repeat
+                  </ThemedText>
+                  <Switch
+                    value={isRepetitive}
+                    onValueChange={() => {
+                      if (!isRepetitive) {
+                        setRepeatType(null);
+                      }
+                      setIsRepetitive(!isRepetitive);
+                    }}
+                  />
+                </Row>
+
+                {isRepetitive && (
+                  <Row className="w-full gap-2">
+                    {(["daily", "weekly", "monthly"] as const).map((type) => (
+                      <Pressable
+                        key={type}
+                        onPress={() => setRepeatType(type)}
+                        className={`px-3 py-1.5 rounded-lg ${
+                          repeatType === type
+                            ? "bg-blue-500"
+                            : "bg-slate-300/40 dark:bg-slate-400/20"
+                        }`}
+                      >
+                        <ThemedText
+                          className={
+                            repeatType === type ? "text-white" : "text-blue-500 dark:text-blue-400"
+                          }
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </ThemedText>
+                      </Pressable>
+                    ))}
+                  </Row>
+                )}
               </Col>
               {show && (
                 <DateTimePicker
@@ -419,7 +478,10 @@ export default function CreatePlan() {
               )}
               <Row className="px-4">
                 <Pressable
-                  onPress={() => setShowAddModal(!showAddModal)}
+                  onPress={() => {
+                    setShowAddModal(!showAddModal);
+                    resetValue();
+                  }}
                   className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
                 >
                   <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
@@ -427,7 +489,11 @@ export default function CreatePlan() {
                   </ThemedText>
                 </Pressable>
                 <Pressable
-                  onPress={handleClick}
+                  onPress={() => {
+                    setIsSaving(true);
+                    handleClick();
+                  }}
+                  disabled={isSaving}
                   className="justify-center items-center w-42 h-8.5 rounded-lg bg-slate-300/40 dark:bg-slate-400/20"
                 >
                   <ThemedText className="w-2/5 text-xl text-center leading-none text-blue-500 dark:text-blue-400">
@@ -451,30 +517,22 @@ export default function CreatePlan() {
             onPress={() => setShowMenuModal(!showMenuModal)}
           />
           <View
-            className="absolute w-24 p-2 -mr-2 -mt-1 rounded-2xl gap-1 bg-slate-100 dark:bg-slate-800"
+            className="absolute w-44 p-2 -mr-2 -mt-1 rounded-2xl gap-2 bg-slate-100 dark:bg-slate-800"
             style={position}
           >
             <Pressable
               onPress={() => {
                 save(data);
               }}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
               <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Save
               </ThemedText>
             </Pressable>
             <Pressable
-              onPress={funcRefresh}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
-            >
-              <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
-                Reload
-              </ThemedText>
-            </Pressable>
-            <Pressable
               onPress={resetData}
-              className="p-1 border-2 border-slate-500 dark:border-slate-300"
+              className="p-2 rounded-xl border border-slate-500 dark:border-slate-300"
             >
               <ThemedText className="text-lg leading-none text-center text-gray-950 dark:text-slate-50">
                 Reset
@@ -482,7 +540,7 @@ export default function CreatePlan() {
             </Pressable>
           </View>
         </Modal>
-      </RouterView>
-    </View>
+      </View>
+    </LinearGradient>
   );
 }
