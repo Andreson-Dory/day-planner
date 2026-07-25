@@ -4,6 +4,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { updateNotificationsId } from "./task-sevices";
 
 export async function scheduleTaskNotifications(task: CreateTask) {
+  const capabilities = await alarmNotificationService.getCapabilities();
   const now = new Date();
   let startId = "";
   let endId = "";
@@ -55,7 +56,14 @@ export async function scheduleTaskNotifications(task: CreateTask) {
     );
   }
 
-  return { startId, endId, startReminderId, endReminderId };
+  return {
+    startId,
+    endId,
+    startReminderId,
+    endReminderId,
+    ...capabilities,
+    hasScheduledNotifications: Boolean(startId || endId || startReminderId || endReminderId),
+  };
 }
 
 export async function cancelNotification(notificationIds: string[]) {
@@ -74,10 +82,11 @@ export async function restoreTaskNotifications(db: SQLiteDatabase, tasks: Task[]
 
       // Repeating tasks: always eligible for restore, regardless of original date
       // One-off tasks: only restore if the time hasn't already passed
-      const startReminderEligible = task.isRepetitive || startReminderTime > now;
-      const startEligible = task.isRepetitive || startTime > now;
-      const endReminderEligible = task.isRepetitive || endReminderTime > now;
-      const endEligible = task.isRepetitive || endTime > now;
+      const startReminderEligible =
+        task.isRepetitive || (startReminderTime > now && !task.isCompleted);
+      const startEligible = task.isRepetitive || (startTime > now && !task.isCompleted);
+      const endReminderEligible = task.isRepetitive || (endReminderTime > now && !task.isCompleted);
+      const endEligible = task.isRepetitive || (endTime > now && !task.isCompleted);
 
       if (startReminderEligible)
         task.startReminderId = await alarmNotificationService.scheduleReplacing(

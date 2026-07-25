@@ -45,7 +45,7 @@ export const addTask = async (db: SQLiteDatabase, task: CreateTask) => {
   }
 };
 
-export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): Promise<boolean> => {
+export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]) => {
   const insertQuery = ` INSERT INTO TASKS ( taskTitle, isRepetitive, repeatType, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); `;
   try {
     await db.withTransactionAsync(async () => {
@@ -82,7 +82,6 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
         await statement.finalizeAsync();
       }
     });
-    return true;
   } catch (error) {
     console.error(error);
     throw Error("Failed to save tasks");
@@ -99,7 +98,9 @@ export const getTasksDaily = async (db: SQLiteDatabase, date: string): Promise<T
             AND date(taskDate) <= date($date))
         OR (isRepetitive = 1 AND repeatType = 'monthly'
             AND strftime('%d', taskDate) = strftime('%d', $date)
-            AND date(taskDate) <= date($date)); 
+            AND date(taskDate) <= date($date))
+      ORDER BY startTime ASC
+      ; 
     `;
 
   try {
@@ -112,7 +113,7 @@ export const getTasksDaily = async (db: SQLiteDatabase, date: string): Promise<T
 };
 
 export const getAllRepetitiveTasks = async (db: SQLiteDatabase): Promise<Task[]> => {
-  const selectQuery = ` SELECT * FROM TASKS WHERE isRepetitive = 1 `;
+  const selectQuery = ` SELECT * FROM TASKS WHERE isRepetitive = 1 ORDER BY startTime ASC`;
 
   try {
     const result = await db.getAllAsync<Task>(selectQuery);
@@ -140,7 +141,7 @@ export const getTasksWeek = async (
 };
 
 export const getAllTasks = async (db: SQLiteDatabase): Promise<Task[]> => {
-  const selectQuery = ` SELECT * FROM TASKS; `;
+  const selectQuery = ` SELECT * FROM TASKS WHERE taskDate >= CURRENT_DATE OR isRepetitive = 1; `;
 
   try {
     const result = await db.getAllAsync<Task>(selectQuery);
@@ -186,7 +187,7 @@ export const updateTaskNotificationIds = async (
   startReminderId: string,
   endReminderId: string,
 ) => {
-  const updateQuery = ` UPDATE TASKS SET startNotificationId=? AND endNotificationId=? AND startReminderId=? AND endReminderId=? WHERE idTask = ?; `;
+  const updateQuery = ` UPDATE TASKS SET startNotificationId=?, endNotificationId=?, startReminderId=?, endReminderId=? WHERE idTask = ?; `;
   const values = [startNotificationId, endNotificationId, startReminderId, endReminderId, idTask];
 
   try {

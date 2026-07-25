@@ -1,4 +1,4 @@
-import { getDashboardStat, getUpcomingTaskToday } from "@/database/dashboard";
+import { getDashboardStat, getUncompletedTaskToday } from "@/database/dashboard";
 import { SQLiteDatabase } from "expo-sqlite";
 
 export const fetchDashboardStat = async (db: SQLiteDatabase) => {
@@ -7,6 +7,6 @@ export const fetchDashboardStat = async (db: SQLiteDatabase) => {
 };
 
 export const fetchUpcomingTask = async (db: SQLiteDatabase) => {
-  const response = await getUpcomingTaskToday(db);
+  const response = await getUncompletedTaskToday(db);
   return response;
 };

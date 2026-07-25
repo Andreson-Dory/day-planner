@@ -1,6 +1,6 @@
-import { Modal, Pressable, Switch, TextInput, View, ViewProps } from "react-native";
+import { Alert, Modal, Pressable, Switch, TextInput, View, ViewProps } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import Col from "@/components/col";
 import Row from "@/components/row";
@@ -9,7 +9,6 @@ import { addTaskService } from "@/services/task-sevices";
 import { DatabaseContext } from "@/context/databaseContext";
 import { getRepetitiveTasksAction, getTasksDailyAction } from "@/redux/actions/taskActions";
 import { scheduleTaskNotifications } from "@/services/notification-service";
-import { combineDateAndTime } from "@/utils/date";
 import Toast from "react-native-toast-message";
 import { alarmNotificationService } from "@/lib/notifications";
 
@@ -32,11 +31,10 @@ export default function AddTaskModal({ showAddModal, setShowAddModal, date, view
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const onChange = (event: any, selectedTime: any) => {
-    const currentTime = selectedTime;
     if (status === "start") {
-      setStartTime(combineDateAndTime(date, currentTime));
+      setStartTime(selectedTime.toISOString());
     } else if (status === "end") {
-      setEndTime(combineDateAndTime(date, currentTime));
+      setEndTime(selectedTime.toISOString());
     }
     setShow(false);
   };
@@ -108,29 +106,50 @@ export default function AddTaskModal({ showAddModal, setShowAddModal, date, view
       startReminderId: notifications.startReminderId,
       endReminderId: notifications.endReminderId,
     };
-    await addTaskService(db, newTask)
-      .then(() => {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "Task added with success with reminders",
-          text1Style: { fontSize: 16, fontWeight: "bold", color: "#059669" },
-          text2Style: { fontSize: 14 },
-          position: "top",
-        });
-      })
-      .catch(async () => {
-        const ids = Object.values(notifications);
-        await alarmNotificationService.cancel(ids);
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Error adding task",
-          text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
-          text2Style: { fontSize: 14 },
-          position: "top",
-        });
+    try {
+      await addTaskService(db, newTask);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: notifications.hasScheduledNotifications
+          ? "Task added with reminders"
+          : notifications.notificationsGranted
+            ? "Task added"
+            : "Task added. Reminders are disabled in system settings.",
+        text1Style: { fontSize: 16, fontWeight: "bold", color: "#059669" },
+        text2Style: { fontSize: 14 },
+        position: "top",
       });
+      if (notifications.notificationsGranted && !notifications.exactAlarmsGranted) {
+        Alert.alert(
+          "Precise reminders unavailable",
+          "Allow Alarms & reminders in Android settings to deliver task reminders at their scheduled time.",
+          [
+            { text: "Not now", style: "cancel" },
+            {
+              text: "Open settings",
+              onPress: () => void alarmNotificationService.openExactAlarmSettings(),
+            },
+          ],
+        );
+      }
+    } catch (error) {
+      await alarmNotificationService.cancel([
+        notifications.startId,
+        notifications.startReminderId,
+        notifications.endId,
+        notifications.endReminderId,
+      ]);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Error adding task",
+        text1Style: { fontSize: 16, fontWeight: "bold", color: "#ef4444" },
+        text2Style: { fontSize: 14 },
+        position: "top",
+      });
+      console.error(error);
+    }
 
     resetValue();
     setShowAddModal(false);
@@ -252,9 +271,10 @@ export default function AddTaskModal({ showAddModal, setShowAddModal, date, view
             <DateTimePicker
               testID="dateTimePicker"
               mode="time"
-              value={new Date()}
+              onDismiss={() => setShow(false)}
+              value={new Date(date)}
               display="default"
-              onChange={onChange}
+              onValueChange={onChange}
             />
           )}
           <Row className="px-4">

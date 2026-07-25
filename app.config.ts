@@ -26,7 +26,6 @@ const config: ExpoConfig = {
       "VIBRATE",
       "USE_FULL_SCREEN_INTENT",
       "RECEIVE_BOOT_COMPLETED",
-      "USE_EXACT_ALARM",
     ],
   },
 

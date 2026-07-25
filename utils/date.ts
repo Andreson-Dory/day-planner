@@ -5,12 +5,6 @@ export const formatLocalDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export const combineDateAndTime = (date: string, time: Date) => {
-  const [year, month, day] = date.split("-").map(Number);
-
-  return new Date(year, month - 1, day, time.getHours(), time.getMinutes(), 0, 0).toISOString();
-};
-
 export function calculateDuration(startTime: string, endTime: string): number {
   const [startHours, startMinutes] = startTime.split(":").map(Number);
   const [endHours, endMinutes] = endTime.split(":").map(Number);
@@ -38,10 +32,7 @@ export function formatTime(timeStr: string): string {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-export const getDatesInRangeCreatePlan = (
-  startDate: string,
-  setWeekDays: React.Dispatch<React.SetStateAction<string[]>>,
-) => {
+export const getDatesInRangeCreatePlan = (startDate: string) => {
   const dates: Record<string, any> = {};
   const weekDaysArray: string[] = [];
 
@@ -52,14 +43,13 @@ export const getDatesInRangeCreatePlan = (
   if (dayOfWeek === 0) {
     const dateString = formatLocalDate(clickedDate);
     weekDaysArray.push(dateString);
-    setWeekDays(weekDaysArray);
     dates[dateString] = {
       startingDay: true,
       endingDay: true,
       color: "orange",
       textColor: "white",
     };
-    return dates;
+    return { markedDates: dates, weekDays: weekDaysArray };
   }
 
   // Monday of this week
@@ -98,7 +88,5 @@ export const getDatesInRangeCreatePlan = (
     textColor: "white",
   };
 
-  setWeekDays(weekDaysArray);
-
-  return dates;
+  return { markedDates: dates, weekDays: weekDaysArray };
 };
