@@ -27,6 +27,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { PlusIcon } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
+import { alarmNotificationService } from "@/lib/notifications";
 
 export default function CreatePlan() {
   const colors = useThemeColors();
@@ -63,11 +64,10 @@ export default function CreatePlan() {
   };
 
   const onChange = (event: any, selectedTime: any) => {
-    const currentTime = selectedTime;
     if (status === "start") {
-      setStartTime(currentTime.toISOString());
+      setStartTime(selectedTime.toISOString());
     } else if (status === "end") {
-      setEndTime(currentTime.toISOString());
+      setEndTime(selectedTime.toISOString());
     }
     setShow(false);
   };
@@ -75,7 +75,6 @@ export default function CreatePlan() {
   const resetData = () => {
     reset();
     setSelected([]);
-    setWeekDays([]);
     setShowMenuModal(false);
   };
 
@@ -94,31 +93,70 @@ export default function CreatePlan() {
     }
     const arrayData = Object.values(datas).flat();
 
-    const tasksWithNotifications = await Promise.all(
-      arrayData.map(async (task) => {
-        const notifications = await scheduleTaskNotifications(task);
-        return {
-          ...task,
-          startNotificationId: notifications.startId,
-          endNotificationId: notifications.endId,
-          startReminderId: notifications.startReminderId,
-          endReminderId: notifications.endReminderId,
-        };
-      }),
+    const scheduledTasks = await Promise.all(
+      arrayData.map(async (task) => ({
+        task,
+        notifications: await scheduleTaskNotifications(task),
+      })),
     );
+    const tasksWithNotifications = scheduledTasks.map(({ task, notifications }) => ({
+      ...task,
+      startNotificationId: notifications.startId,
+      endNotificationId: notifications.endId,
+      startReminderId: notifications.startReminderId,
+      endReminderId: notifications.endReminderId,
+    }));
 
     await addArrayOfTaskService(db, tasksWithNotifications)
       .then(() => {
+        const hasScheduledNotifications = scheduledTasks.some(
+          ({ notifications }) => notifications.hasScheduledNotifications,
+        );
+        const notificationsGranted = scheduledTasks.every(
+          ({ notifications }) => notifications.notificationsGranted,
+        );
         Toast.show({
           type: "success",
           text1: "Success",
-          text2: "Tasks added with success with reminders",
+          text2: hasScheduledNotifications
+            ? "Tasks added with reminders"
+            : notificationsGranted
+              ? "Tasks added"
+              : "Tasks added. Reminders are disabled in system settings.",
           text1Style: { fontSize: 16, fontWeight: "bold", color: "#059669" },
           text2Style: { fontSize: 14 },
           position: "top",
         });
+        if (
+          notificationsGranted &&
+          scheduledTasks.some(({ notifications }) => !notifications.exactAlarmsGranted)
+        ) {
+          Alert.alert(
+            "Precise reminders unavailable",
+            "Allow Alarms & reminders in Android settings to deliver task reminders at their scheduled time.",
+            [
+              { text: "Not now", style: "cancel" },
+              {
+                text: "Open settings",
+                onPress: () => void alarmNotificationService.openExactAlarmSettings(),
+              },
+            ],
+          );
+        }
+        resetData();
       })
-      .catch(() => {
+      .catch(async () => {
+        await Promise.all(
+          tasksWithNotifications.map(async (task) => {
+            const ids = [
+              task.startNotificationId,
+              task.endNotificationId,
+              task.startReminderId,
+              task.endReminderId,
+            ];
+            await alarmNotificationService.cancel(ids);
+          }),
+        );
         Toast.show({
           type: "error",
           text1: "Error",
@@ -128,7 +166,6 @@ export default function CreatePlan() {
           position: "top",
         });
       });
-    resetData();
   };
 
   const handleClick = async () => {
@@ -194,18 +231,22 @@ export default function CreatePlan() {
 
   //create plan variable & functions
   const [selected, setSelected] = useState<string[]>([]);
-  const [weekDays, setWeekDays] = useState<string[]>([]);
   const [openDays, setOpenDays] = useState<Set<number>>(new Set());
-  const [markedDate, setMarkedDate] = useState({});
   const db = useContext(DatabaseContext);
   const currentDate = new Date();
   const initialDate = formatLocalDate(currentDate);
+  const { markedDates, weekDays } = useMemo(
+    () =>
+      selected.length === 1
+        ? getDatesInRangeCreatePlan(selected[0])
+        : { markedDates: {}, weekDays: [] },
+    [selected],
+  );
   const datesPeriod = (day: string) => {
     setSelected((prev) => {
       const newArray = Array.from(prev);
       if (newArray[0] === day) {
         newArray.splice(0, 1);
-        setWeekDays([]);
       } else {
         newArray[0] = day;
       }
@@ -223,10 +264,6 @@ export default function CreatePlan() {
       return newSet;
     });
   };
-
-  useEffect(() => {
-    setMarkedDate(selected.length === 1 ? getDatesInRangeCreatePlan(selected[0], setWeekDays) : {});
-  }, [selected]);
 
   useEffect(() => {
     setPeriod(weekDays);
@@ -306,7 +343,7 @@ export default function CreatePlan() {
               markingType="period"
               markedDates={{
                 [initialDate]: { today: true, textColor: "#3b82f6" },
-                ...markedDate,
+                ...markedDates,
               }}
               theme={calendarTheme}
             />
@@ -471,9 +508,9 @@ export default function CreatePlan() {
                 <DateTimePicker
                   testID="dateTimePicker"
                   mode="time"
-                  value={new Date()}
+                  value={new Date(newTaskDate ?? "")}
                   display="default"
-                  onChange={onChange}
+                  onValueChange={onChange}
                 />
               )}
               <Row className="px-4">

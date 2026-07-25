@@ -1,5 +1,5 @@
 import { Dimensions, Modal, Pressable, View } from "react-native";
-import { useCallback, useContext, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
 import { AddButton } from "@/components/actionButton/AddButton";

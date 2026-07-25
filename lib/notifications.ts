@@ -8,6 +8,11 @@ import { canScheduleExactAlarms } from "react-native-permissions";
 
 const CHANNEL_ID = "alarm_v6";
 
+export type NotificationCapabilities = {
+  notificationsGranted: boolean;
+  exactAlarmsGranted: boolean;
+};
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -19,7 +24,11 @@ Notifications.setNotificationHandler({
 });
 
 class AlarmNotificationService {
-  async init(): Promise<boolean> {
+  private capabilities: NotificationCapabilities | null = null;
+
+  async init(): Promise<NotificationCapabilities> {
+    let exactAlarmsGranted = true;
+
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
         name: "Task Alarms",
@@ -34,38 +43,48 @@ class AlarmNotificationService {
       });
 
       if (Platform.Version >= 31) {
-        const hasExactAlarmAccess = await canScheduleExactAlarms();
-        if (!hasExactAlarmAccess) {
-          try {
-            await IntentLauncher.startActivityAsync(
-              "android.settings.REQUEST_SCHEDULE_EXACT_ALARM",
-              {
-                data: `package:${Application.applicationId}`,
-              },
-            );
-          } catch (error) {
-            console.warn("Could not open exact alarm settings:", error);
-          }
-        }
+        exactAlarmsGranted = await canScheduleExactAlarms();
       }
     }
 
-    const { status } = await Notifications.requestPermissionsAsync({
-      ios: {
-        allowAlert: true,
-        allowBadge: false,
-        allowSound: true,
-      },
-    });
-
-    const granted = status === "granted";
-    if (!granted) {
-      console.warn("Notification permissions not granted:", status);
+    let permissions = await Notifications.getPermissionsAsync();
+    if (permissions.status === "undetermined") {
+      permissions = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: false,
+          allowSound: true,
+        },
+      });
     }
-    return granted;
+
+    const notificationsGranted =
+      permissions.granted ||
+      permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+    if (!notificationsGranted) {
+      console.warn("Notification permissions not granted:", permissions.status);
+    }
+
+    this.capabilities = { notificationsGranted, exactAlarmsGranted };
+    return this.capabilities;
+  }
+
+  async getCapabilities(): Promise<NotificationCapabilities> {
+    return this.capabilities ?? this.init();
+  }
+
+  async openExactAlarmSettings() {
+    if (Platform.OS !== "android" || Platform.Version < 31) return;
+
+    await IntentLauncher.startActivityAsync("android.settings.REQUEST_SCHEDULE_EXACT_ALARM", {
+      data: `package:${Application.applicationId}`,
+    });
   }
 
   async schedule(task: CreateTask, date: Date, title: string, body: string): Promise<string> {
+    const { notificationsGranted } = await this.getCapabilities();
+    if (!notificationsGranted) return "";
+
     try {
       return await Notifications.scheduleNotificationAsync({
         content: {
@@ -99,7 +118,7 @@ class AlarmNotificationService {
 
   async cancel(notificationIds: string[]) {
     await Promise.all(
-      notificationIds.map(async (notificationId) => {
+      notificationIds.filter(Boolean).map(async (notificationId) => {
         try {
           await Notifications.cancelScheduledNotificationAsync(notificationId);
           await Notifications.dismissNotificationAsync(notificationId);

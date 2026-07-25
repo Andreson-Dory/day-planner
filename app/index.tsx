@@ -7,7 +7,7 @@ import { alarmNotificationService } from "@/lib/notifications";
 import "@/global.css";
 import { SubHeader } from "@/components/headers/SubHeader";
 import { LinearGradient } from "expo-linear-gradient";
-import { View } from "react-native";
+import { AppState, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Activity, Calendar, ListChecksIcon } from "lucide-react-native";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -27,15 +27,22 @@ export default function Index() {
   const todayString = formatLocalDate(today);
 
   useEffect(() => {
-    async function initNotifications() {
-      await alarmNotificationService.init();
+    async function refreshNotifications() {
+      const { notificationsGranted } = await alarmNotificationService.init();
 
-      if (db) {
+      if (db && notificationsGranted) {
         const tasks = await getAllTask(db);
         await restoreTaskNotifications(db, tasks);
       }
     }
-    if (db) initNotifications();
+    if (!db) return;
+
+    void refreshNotifications();
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") void refreshNotifications();
+    });
+
+    return () => subscription.remove();
   }, [db]);
 
   useFocusEffect(
@@ -70,7 +77,9 @@ export default function Index() {
 
         <View className="flex flex-row items-start justify-between rounded-xl p-4 border bg-emerald-50 border-emerald-200 shadow-sm transition">
           <View>
-            <ThemedText className="text-sm font-medium text-slate-600">Today's Tasks</ThemedText>
+            <ThemedText className="text-sm font-medium text-slate-600">
+              Today&apos;s Tasks
+            </ThemedText>
             <ThemedText className="text-3xl font-bold text-slate-900 mt-2">{taskCount}</ThemedText>
             <ThemedText className="text-xs text-slate-500 mt-1">
               {completedTaskCount} completed, {pendingTaskCount} pending
