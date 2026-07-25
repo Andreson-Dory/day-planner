@@ -1,5 +1,5 @@
-import { Dimensions, Modal, Pressable, ScrollView, TextProps, View } from "react-native";
-import { useContext, useEffect, useRef, useState } from "react";
+import { Dimensions, Modal, Pressable, View } from "react-native";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { ThemedText } from "@/components/ThemedText";
 import { AddButton } from "@/components/actionButton/AddButton";
@@ -8,64 +8,15 @@ import StatusHeader from "@/components/headers/StatusHeader";
 import { useDispatch } from "react-redux";
 import { getTasksDailyAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
-import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
-import { TaskCard } from "@/components/task/Task";
 import { Task } from "@/constant/types/task";
 import { formatLocalDate } from "@/utils/date";
 import AddTaskModal from "@/components/task/addTaskModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useThemeColors } from "@/hooks/useThemeColors";
-
-type Props = TextProps & {
-  dailyTasks: Task[];
-  currentDate: string;
-  db: SQLiteDatabase | null;
-};
-
-const getDateString = (date: string) => {
-  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-const getWeekDay = (date: string) => {
-  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
-    weekday: "long",
-  });
-};
-
-const getDatesInRange = ({
-  setWeekDays,
-}: {
-  setWeekDays: React.Dispatch<React.SetStateAction<string[]>>;
-}) => {
-  setWeekDays([]);
-  let currentDate = new Date();
-
-  const dayOfCurrentWeek = currentDate.getDay();
-  const firstWeekDate = new Date(currentDate);
-  const lastWeekDate = new Date(currentDate);
-  firstWeekDate.setDate(currentDate.getDate() - dayOfCurrentWeek + 1);
-  lastWeekDate.setDate(firstWeekDate.getDate() + 6);
-  while (firstWeekDate <= lastWeekDate) {
-    const dateString = formatLocalDate(firstWeekDate);
-    setWeekDays((prev) => [...prev, dateString]);
-    firstWeekDate.setDate(firstWeekDate.getDate() + 1);
-  }
-};
-
-function Contents({ dailyTasks, currentDate, db }: Props) {
-  return (
-    <ScrollView className="mb-2.5" showsVerticalScrollIndicator={false}>
-      {dailyTasks.map((task) => (
-        <TaskCard key={task.idTask} task={task} view="week" date={currentDate} db={db} />
-      ))}
-    </ScrollView>
-  );
-}
+import { useFocusEffect } from "expo-router";
+import { getDatesInRange, getDateString, getWeekDay } from "@/utils/week-task";
+import { TasksContainer } from "@/components/task/TasksContainer";
 
 export default function WeekTask() {
   const colors = useThemeColors();
@@ -85,12 +36,14 @@ export default function WeekTask() {
     getDatesInRange({ setWeekDays });
   }, []);
 
-  useEffect(() => {
-    if (!db) return;
-    if (!selectedDay) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!db) return;
+      if (!selectedDay) return;
 
-    dispatch<any>(getTasksDailyAction(db, selectedDay));
-  }, [db, dispatch, selectedDay]);
+      dispatch<any>(getTasksDailyAction(db, selectedDay));
+    }, [db, dispatch, selectedDay]),
+  );
 
   useEffect(() => {
     setTasks(tasks);
@@ -99,7 +52,7 @@ export default function WeekTask() {
   const showModal = () => {
     ButtonRef.current?.measureInWindow((x, y, width, height) => {
       setPosition({
-        top: y + height * 4,
+        top: y + height + 10,
         right: Dimensions.get("window").width - x - width,
       });
       setShowMenuModal(true);
@@ -111,7 +64,7 @@ export default function WeekTask() {
       colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
       <View className="flex-1">
         <SubHeader
@@ -121,7 +74,7 @@ export default function WeekTask() {
           ButtonRef={ButtonRef}
         />
         <StatusHeader filter={filter} setFilter={setFilter} />
-        <Contents dailyTasks={filteredTasks} currentDate={selectedDay} db={db} />
+        <TasksContainer dailyTasks={filteredTasks} view="week" currentDate={selectedDay} db={db} />
         {selectedDay >= now && (
           <AddButton
             className="bottom-3.75 left-0 right-0 z-10"

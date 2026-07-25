@@ -34,7 +34,11 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-sqlite",
     "@react-native-community/datetimepicker",
-    ["expo-notifications", { defaultChannel: "alarm_v3" }],
+    "expo-font",
+    "expo-image",
+    "expo-status-bar",
+    "expo-web-browser",
+    ["expo-notifications", { defaultChannel: "alarm_v6" }],
     [
       "expo-build-properties",
       {

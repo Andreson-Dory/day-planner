@@ -4,7 +4,11 @@ import { Dispatch, useEffect, useState } from "react";
 import { calculateDuration, formatDuration, formatTime } from "@/utils/date";
 import { useDispatch } from "react-redux";
 import { deleteTaskService, setFinishedTask } from "@/services/task-sevices";
-import { getTasksDailyAction, getTasksWeekAction } from "@/redux/actions/taskActions";
+import {
+  getRepetitiveTasksAction,
+  getTasksDailyAction,
+  getTasksWeekAction,
+} from "@/redux/actions/taskActions";
 import { alarmNotificationService } from "@/lib/notifications";
 import { useTheme } from "./useTheme";
 import Toast from "react-native-toast-message";
@@ -54,6 +58,7 @@ const handleFinish = async (
   await alarmNotificationService.cancel(ids);
   await setFinishedTask(db, task.idTask);
   if (view === "today" || view === "week") dispatch(getTasksDailyAction(db, date));
+  else if (view === "repetitive") dispatch(getRepetitiveTasksAction(db));
 };
 
 const handleDelete = async (
@@ -103,6 +108,7 @@ const handleDelete = async (
       });
     });
   if (view === "today" || view === "week") dispatch(getTasksDailyAction(db, date));
+  else if (view === "repetitive") dispatch(getRepetitiveTasksAction(db));
 };
 
 export function useTaskData(task: Task) {

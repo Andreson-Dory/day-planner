@@ -1,15 +1,15 @@
 // components/CustomDrawerContent.tsx
 import { Pressable, Image, View, Text } from "react-native";
-import {
-  DrawerContentScrollView,
-  DrawerItemList,
-  DrawerContentComponentProps,
-} from "@react-navigation/drawer";
 import { useTheme } from "@/hooks/useTheme"; // wherever your toggleTheme/theme lives
 import { Moon, Sun } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { GradientText } from "../gradientText";
+import {
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
+} from "expo-router/drawer";
 
 export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { theme, toggleTheme } = useTheme();
@@ -20,7 +20,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
       colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
       <DrawerContentScrollView {...props}>
         <View className="items-center gap-4 mb-10">

@@ -8,8 +8,12 @@ import {
   GET_WEEK_TASKS,
   GET_WEEK_TASKS_ERROR,
   GET_WEEK_TASKS_SUCCESS,
+  GET_REPETITIVE_TASKS,
+  GET_REPETITIVE_TASKS_SUCCESS,
+  GET_REPETITIVE_TASKS_ERROR,
 } from "@/constant";
 import {
+  fetchRepetitiveTasks,
   getCurrentCreatedPlanTaskService,
   getDailyTasksService,
   getWeekTasksService,
@@ -54,6 +58,19 @@ export const getTasksCurrentCreatedPlanAction = (db: SQLiteDatabase, startDate: 
     } catch (error) {
       console.error(error);
       disptach({ type: GET_PLAN_TASKS_ERROR });
+    }
+  };
+};
+
+export const getRepetitiveTasksAction = (db: SQLiteDatabase) => {
+  return async (disptach: Dispatch<any>) => {
+    disptach({ type: GET_REPETITIVE_TASKS });
+    try {
+      const response = await fetchRepetitiveTasks(db);
+      disptach({ type: GET_REPETITIVE_TASKS_SUCCESS, payload: response });
+    } catch (error) {
+      console.error(error);
+      disptach({ type: GET_REPETITIVE_TASKS_ERROR });
     }
   };
 };

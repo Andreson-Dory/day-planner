@@ -1,5 +1,5 @@
-import { ScrollView, TextProps, View } from "react-native";
-import { useContext, useEffect, useState } from "react";
+import { View } from "react-native";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SubHeader } from "@/components/headers/SubHeader";
 import StatusHeader from "@/components/headers/StatusHeader";
@@ -7,30 +7,14 @@ import { AddButton } from "@/components/actionButton/AddButton";
 import { useDispatch } from "react-redux";
 import { getTasksDailyAction } from "@/redux/actions/taskActions";
 import { DatabaseContext } from "@/context/databaseContext";
-import { SQLiteDatabase } from "expo-sqlite";
 import { useStatusHeader } from "@/hooks/useStatusHeader";
 import { Task } from "@/constant/types/task";
-import { TaskCard } from "@/components/task/Task";
 import { formatLocalDate } from "@/utils/date";
 import AddTaskModal from "@/components/task/addTaskModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useThemeColors } from "@/hooks/useThemeColors";
-
-type Props = TextProps & {
-  tasks: Task[];
-  currentDate: string;
-  db: SQLiteDatabase | null;
-};
-
-function Contents({ tasks, currentDate, db }: Props) {
-  return (
-    <View>
-      {tasks.map((task) => (
-        <TaskCard key={task.idTask} task={task} view="today" date={currentDate} db={db} />
-      ))}
-    </View>
-  );
-}
+import { useFocusEffect } from "expo-router";
+import { TasksContainer } from "@/components/task/TasksContainer";
 
 export default function TodayTask() {
   const dispatch = useDispatch();
@@ -42,10 +26,12 @@ export default function TodayTask() {
   const today = new Date();
   const todayString = formatLocalDate(today);
 
-  useEffect(() => {
-    if (!db) return;
-    dispatch<any>(getTasksDailyAction(db, todayString));
-  }, [db, dispatch, todayString]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!db) return;
+      dispatch<any>(getTasksDailyAction(db, todayString));
+    }, [db, dispatch, todayString]),
+  );
 
   useEffect(() => {
     setTasks(tasks);
@@ -56,7 +42,7 @@ export default function TodayTask() {
       colors={[colors.appBaseGradientStart, colors.appBaseGradientEnd]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
       <View className="flex-1">
         <SubHeader
@@ -69,9 +55,7 @@ export default function TodayTask() {
           }}
         />
         <StatusHeader filter={filter} setFilter={setFilter} />
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-5">
-          <Contents tasks={filteredTasks} db={db} currentDate={todayString} />
-        </ScrollView>
+        <TasksContainer dailyTasks={filteredTasks} view="today" db={db} currentDate={todayString} />
         <AddButton
           className="bottom-3.75 left-0 right-0 z-10"
           onPress={() => setShowAddTaskModal(true)}

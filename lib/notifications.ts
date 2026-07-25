@@ -1,7 +1,12 @@
+import { CreateTask, Task } from "@/constant/types/task";
+import { buildTrigger } from "@/utils/notification";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import * as Application from "expo-application";
+import * as IntentLauncher from "expo-intent-launcher";
+import { canScheduleExactAlarms } from "react-native-permissions";
 
-const CHANNEL_ID = "alarm_v4";
+const CHANNEL_ID = "alarm_v6";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -19,7 +24,6 @@ class AlarmNotificationService {
       await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
         name: "Task Alarms",
         importance: Notifications.AndroidImportance.MAX,
-        sound: "default",
         vibrationPattern: [1000, 1000, 1000, 1000],
         enableVibrate: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
@@ -28,6 +32,22 @@ class AlarmNotificationService {
           usage: Notifications.AndroidAudioUsage.ALARM,
         },
       });
+
+      if (Platform.Version >= 31) {
+        const hasExactAlarmAccess = await canScheduleExactAlarms();
+        if (!hasExactAlarmAccess) {
+          try {
+            await IntentLauncher.startActivityAsync(
+              "android.settings.REQUEST_SCHEDULE_EXACT_ALARM",
+              {
+                data: `package:${Application.applicationId}`,
+              },
+            );
+          } catch (error) {
+            console.warn("Could not open exact alarm settings:", error);
+          }
+        }
+      }
     }
 
     const { status } = await Notifications.requestPermissionsAsync({
@@ -45,22 +65,18 @@ class AlarmNotificationService {
     return granted;
   }
 
-  async schedule(date: Date, title: string, body: string): Promise<string> {
+  async schedule(task: CreateTask, date: Date, title: string, body: string): Promise<string> {
     try {
       return await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
-          sound: "default",
+          sound: true,
           autoDismiss: false,
           sticky: true,
           interruptionLevel: "timeSensitive",
         },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date,
-          channelId: CHANNEL_ID,
-        },
+        trigger: buildTrigger(task, date, CHANNEL_ID),
       });
     } catch (error) {
       console.error("Failed to schedule notification:", title, error);
@@ -68,20 +84,22 @@ class AlarmNotificationService {
     }
   }
 
-  async isScheduled(notificationId: string) {
-    if (!notificationId) {
-      return false;
+  async scheduleReplacing(
+    oldId: string,
+    task: CreateTask,
+    date: Date,
+    title: string,
+    body: string,
+  ) {
+    if (oldId) {
+      await this.cancel([oldId]);
     }
-
-    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
-    return scheduledNotifications.some(
-      (notification) => notification.identifier === notificationId,
-    );
+    return this.schedule(task, date, title, body);
   }
 
   async cancel(notificationIds: string[]) {
     await Promise.all(
-      notificationIds.filter(Boolean).map(async (notificationId) => {
+      notificationIds.map(async (notificationId) => {
         try {
           await Notifications.cancelScheduledNotificationAsync(notificationId);
           await Notifications.dismissNotificationAsync(notificationId);

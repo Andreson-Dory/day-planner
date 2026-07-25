@@ -15,6 +15,8 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
         endTime TEXT NOT NULL,
         taskDate TEXT NOT NULL,
         isCompleted INTEGER NOT NULL DEFAULT 0,
+        isRepetitive INTEGER NOT NULL DEFAULT 0,
+        repeatType TEXT DEFAULT NULL,
         startNotificationId TEXT,
         endNotificationId TEXT,
         startReminderId TEXT,

@@ -17,6 +17,7 @@ export async function scheduleTaskNotifications(task: CreateTask) {
   const startReminderTime = new Date(startTimeIni.getTime() - 10 * 60 * 1000);
   if (startReminderTime > now) {
     startReminderId = await alarmNotificationService.schedule(
+      task,
       startReminderTime,
       "Upcoming Task",
       `${task.taskTitle} will start in 10 minutes`,
@@ -26,25 +27,28 @@ export async function scheduleTaskNotifications(task: CreateTask) {
   // Schedule main start notification
   if (startTimeIni > now) {
     startId = await alarmNotificationService.schedule(
+      task,
       startTimeIni,
       "Task Started",
       `${task.taskTitle} is starting now`,
     );
   }
 
-  // Schedule reminder 5 min before end
-  const endReminderTime = new Date(endTimeIni.getTime() - 5 * 60 * 1000);
+  // Schedule reminder 10 min before end
+  const endReminderTime = new Date(endTimeIni.getTime() - 10 * 60 * 1000);
   if (endReminderTime > now) {
     endReminderId = await alarmNotificationService.schedule(
+      task,
       endReminderTime,
       "Task Ending Soon",
-      `${task.taskTitle} will end in 5 minutes`,
+      `${task.taskTitle} will end in 10 minutes`,
     );
   }
 
   // Schedule main end notification
   if (endTimeIni > now) {
     endId = await alarmNotificationService.schedule(
+      task,
       endTimeIni,
       "Task Finished",
       `${task.taskTitle} has ended`,
@@ -65,44 +69,48 @@ export async function restoreTaskNotifications(db: SQLiteDatabase, tasks: Task[]
     try {
       const startTime = new Date(task.startTime);
       const endTime = new Date(task.endTime);
-
       const startReminderTime = new Date(startTime.getTime() - 10 * 60 * 1000);
-      if (
-        startReminderTime > now &&
-        !(await alarmNotificationService.isScheduled(task.startReminderId))
-      ) {
-        task.startReminderId = await alarmNotificationService.schedule(
+      const endReminderTime = new Date(endTime.getTime() - 10 * 60 * 1000);
+
+      // Repeating tasks: always eligible for restore, regardless of original date
+      // One-off tasks: only restore if the time hasn't already passed
+      const startReminderEligible = task.isRepetitive || startReminderTime > now;
+      const startEligible = task.isRepetitive || startTime > now;
+      const endReminderEligible = task.isRepetitive || endReminderTime > now;
+      const endEligible = task.isRepetitive || endTime > now;
+
+      if (startReminderEligible)
+        task.startReminderId = await alarmNotificationService.scheduleReplacing(
+          task.startReminderId,
+          task,
           startReminderTime,
           "Upcoming Task",
           `${task.taskTitle} will start in 10 minutes`,
         );
-      }
 
-      if (
-        startTime > now &&
-        !(await alarmNotificationService.isScheduled(task.startNotificationId))
-      ) {
-        task.startNotificationId = await alarmNotificationService.schedule(
+      if (startEligible)
+        task.startNotificationId = await alarmNotificationService.scheduleReplacing(
+          task.startNotificationId,
+          task,
           startTime,
           "Task Started",
           `${task.taskTitle} is starting now`,
         );
-      }
 
-      const endReminderTime = new Date(endTime.getTime() - 5 * 60 * 1000);
-      if (
-        endReminderTime > now &&
-        !(await alarmNotificationService.isScheduled(task.endReminderId))
-      ) {
-        task.endReminderId = await alarmNotificationService.schedule(
+      if (endReminderEligible) {
+        task.endReminderId = await alarmNotificationService.scheduleReplacing(
+          task.endReminderId,
+          task,
           endReminderTime,
           "Task Ending Soon",
-          `${task.taskTitle} will end in 5 minutes`,
+          `${task.taskTitle} will end in 10 minutes`,
         );
       }
 
-      if (endTime > now && !(await alarmNotificationService.isScheduled(task.endNotificationId))) {
-        task.endNotificationId = await alarmNotificationService.schedule(
+      if (endEligible) {
+        task.endNotificationId = await alarmNotificationService.scheduleReplacing(
+          task.endNotificationId,
+          task,
           endTime,
           "Task Finished",
           `${task.taskTitle} has ended`,

@@ -1,5 +1,4 @@
 import { CreateTask, Task } from "@/constant/types/task";
-import { formatLocalDate } from "@/utils/date";
 import { SQLiteDatabase } from "expo-sqlite";
 
 /**
@@ -13,6 +12,8 @@ import { SQLiteDatabase } from "expo-sqlite";
 export const addTask = async (db: SQLiteDatabase, task: CreateTask) => {
   const {
     taskTitle,
+    isRepetitive,
+    repeatType,
     startTime,
     endTime,
     taskDate,
@@ -21,9 +22,11 @@ export const addTask = async (db: SQLiteDatabase, task: CreateTask) => {
     startReminderId,
     endReminderId,
   } = task;
-  const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?); `;
+  const insertQuery = ` INSERT INTO TASKS ( taskTitle, isRepetitive, repeatType,startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); `;
   const values = [
     taskTitle,
+    isRepetitive,
+    repeatType,
     startTime,
     endTime,
     taskDate,
@@ -43,7 +46,7 @@ export const addTask = async (db: SQLiteDatabase, task: CreateTask) => {
 };
 
 export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): Promise<boolean> => {
-  const insertQuery = ` INSERT INTO TASKS ( taskTitle, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?); `;
+  const insertQuery = ` INSERT INTO TASKS ( taskTitle, isRepetitive, repeatType, startTime, endTime, taskDate, startNotificationId, endNotificationId, startReminderId, endReminderId) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); `;
   try {
     await db.withTransactionAsync(async () => {
       const statement = await db.prepareAsync(insertQuery);
@@ -51,6 +54,8 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
         for (const task of tasks) {
           const {
             taskTitle,
+            isRepetitive,
+            repeatType,
             startTime,
             endTime,
             taskDate,
@@ -61,6 +66,8 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
           } = task;
           const values = [
             taskTitle,
+            isRepetitive,
+            repeatType,
             startTime,
             endTime,
             taskDate,
@@ -83,7 +90,17 @@ export const addArrayOfTask = async (db: SQLiteDatabase, tasks: CreateTask[]): P
 };
 
 export const getTasksDaily = async (db: SQLiteDatabase, date: string): Promise<Task[]> => {
-  const selectQuery = ` SELECT * FROM TASKS WHERE taskDate = $date; `;
+  const selectQuery = ` 
+    SELECT * FROM TASKS 
+      WHERE taskDate = $date 
+        OR (isRepetitive = 1 AND repeatType = 'daily')
+        OR (isRepetitive = 1 AND repeatType = 'weekly'
+            AND strftime('%w', taskDate) = strftime('%w', $date)
+            AND date(taskDate) <= date($date))
+        OR (isRepetitive = 1 AND repeatType = 'monthly'
+            AND strftime('%d', taskDate) = strftime('%d', $date)
+            AND date(taskDate) <= date($date)); 
+    `;
 
   try {
     const result = await db.getAllAsync<Task>(selectQuery, { $date: date });
@@ -91,6 +108,18 @@ export const getTasksDaily = async (db: SQLiteDatabase, date: string): Promise<T
   } catch (error) {
     console.error(error);
     throw Error(" Failed to get daily tasks ");
+  }
+};
+
+export const getAllRepetitiveTasks = async (db: SQLiteDatabase): Promise<Task[]> => {
+  const selectQuery = ` SELECT * FROM TASKS WHERE isRepetitive = 1 `;
+
+  try {
+    const result = await db.getAllAsync<Task>(selectQuery);
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw Error(" Failed to get all repetitive tasks ");
   }
 };
 

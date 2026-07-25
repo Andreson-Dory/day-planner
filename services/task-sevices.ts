@@ -4,6 +4,7 @@ import {
   addTask,
   deleteTask,
   finishTask,
+  getAllRepetitiveTasks,
   getAllTasks,
   getTasksCurrentCreatedPlan,
   getTasksDaily,
@@ -71,5 +72,10 @@ export const deleteTaskService = async (db: SQLiteDatabase, idTask: number) => {
 
 export const setFinishedTask = async (db: SQLiteDatabase, idTask: number) => {
   const response = await finishTask(db, idTask);
+  return response;
+};
+
+export const fetchRepetitiveTasks = async (db: SQLiteDatabase) => {
+  const response = await getAllRepetitiveTasks(db);
   return response;
 };

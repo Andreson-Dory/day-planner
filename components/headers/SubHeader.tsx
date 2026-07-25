@@ -1,10 +1,10 @@
 import { Pressable, TouchableOpacity, View } from "react-native";
-import { ArrowDownNarrowWideIcon, Menu, RefreshCcw } from "lucide-react-native";
+import { ArrowDownNarrowWideIcon, FilterIcon, Menu, RefreshCcw } from "lucide-react-native";
 import { ThemedText } from "../ThemedText";
 import { useNavigation } from "expo-router";
-import { DrawerActions } from "@react-navigation/native";
 import Row from "../row";
 import { RefObject } from "react";
+import { DrawerActions } from "expo-router/build/react-navigation";
 
 type Props = {
   text: string;
@@ -27,6 +27,10 @@ export function SubHeader({ text, type, onPress, ButtonRef }: Props) {
       {type === "create" || type === "week" ? (
         <Pressable onPress={onPress} ref={ButtonRef}>
           <ArrowDownNarrowWideIcon size={28} color="#f8fafc" />
+        </Pressable>
+      ) : type === "repetitive" ? (
+        <Pressable onPress={onPress} ref={ButtonRef}>
+          <FilterIcon size={28} color="#f8fafc" />
         </Pressable>
       ) : (
         <Pressable onPress={onPress}>
