@@ -5,9 +5,9 @@ const IS_DEV = process.env.APP_VARIANT === "development";
 const config: ExpoConfig = {
   name: IS_DEV ? "Day Planner Dev" : "Day Planner",
   slug: "day-planner",
-  version: "1.0.0",
+  version: "2.0.0",
   orientation: "portrait",
-  icon: "./assets/images/day-planner.png",
+  icon: "./assets/images/day-planner-logo.png",
   scheme: "dayplanner",
   userInterfaceStyle: "automatic",
 
