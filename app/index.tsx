@@ -13,7 +13,7 @@ import { Activity, Calendar, ListChecksIcon } from "lucide-react-native";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useDispatch } from "react-redux";
 import { fetchDashboardStatAction } from "@/redux/actions/dashboardActions";
-import { useFocusEffect } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { TasksContainer } from "@/components/task/TasksContainer";
 import { formatLocalDate } from "@/utils/date";
 import { calculateRate } from "@/utils/math";
@@ -75,30 +75,36 @@ export default function Index() {
           Dashboard
         </ThemedText>
 
-        <View className="flex flex-row items-start justify-between rounded-xl p-4 border bg-emerald-50 border-emerald-200 shadow-sm transition">
-          <View>
-            <ThemedText className="text-sm font-medium text-slate-600">
-              Today&apos;s Tasks
-            </ThemedText>
-            <ThemedText className="text-3xl font-bold text-slate-900 mt-2">{taskCount}</ThemedText>
-            <ThemedText className="text-xs text-slate-500 mt-1">
-              {completedTaskCount} completed, {pendingTaskCount} pending
-            </ThemedText>
+        <Link href="/today-task">
+          <View className="flex flex-row w-full items-start justify-between rounded-xl p-4 border bg-emerald-50 border-emerald-200 shadow-sm transition">
+            <View>
+              <ThemedText className="text-sm font-medium text-slate-600">
+                Today&apos;s Tasks
+              </ThemedText>
+              <ThemedText className="text-3xl font-bold text-slate-900 mt-2">
+                {taskCount}
+              </ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">
+                {completedTaskCount} completed, {pendingTaskCount} pending
+              </ThemedText>
+            </View>
+            <ListChecksIcon size={25} color="#10b981" />
           </View>
-          <ListChecksIcon size={25} color="#10b981" />
-        </View>
-        <View className="flex flex-row items-start justify-between rounded-xl p-4 border bg-emerald-50 border-emerald-200 shadow-sm transition">
-          <View>
-            <ThemedText className="text-sm font-medium text-slate-600">This Week</ThemedText>
-            <ThemedText className="text-3xl font-bold text-slate-900 mt-2">
-              {weekTaskCount}
-            </ThemedText>
-            <ThemedText className="text-xs text-slate-500 mt-1">
-              {weekRate}% completion rate
-            </ThemedText>
+        </Link>
+        <Link href="/week-task">
+          <View className="flex flex-row w-full items-start justify-between rounded-xl p-4 border bg-emerald-50 border-emerald-200 shadow-sm transition">
+            <View>
+              <ThemedText className="text-sm font-medium text-slate-600">This Week</ThemedText>
+              <ThemedText className="text-3xl font-bold text-slate-900 mt-2">
+                {weekTaskCount}
+              </ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">
+                {weekRate}% completion rate
+              </ThemedText>
+            </View>
+            <Calendar size={25} color="#10b981" />
           </View>
-          <Calendar size={25} color="#10b981" />
-        </View>
+        </Link>
         <View className="flex flex-row items-start justify-between rounded-xl p-4 border bg-amber-50 border-amber-200 shadow-sm transition">
           <View>
             <ThemedText className="text-sm font-medium text-slate-600">Productivity</ThemedText>
