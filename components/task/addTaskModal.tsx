@@ -170,7 +170,7 @@ export default function AddTaskModal({ showAddModal, setShowAddModal, date, view
     >
       <View className="flex-1 justify-center items-center">
         <View className="py-5 rounded-4.25 mx-4 bg-cyan-50 dark:bg-cyan-950">
-          <ThemedText className="text-xl text-center leading-none mb-6 text-blue-500 dark:text-blue-500">
+          <ThemedText className="text-2xl font-bold text-center leading-none mb-6 text-blue-500 dark:text-blue-500">
             Add New Task
           </ThemedText>
           <Col className="px-4 mb-4 gap-4">
