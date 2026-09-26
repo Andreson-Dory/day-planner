@@ -46,12 +46,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
             {theme === "light" ? (
               <View className="flex-row items-center gap-4">
                 <Moon size={25} color={colors.drawerText} />
-                <Text className="text-xl text-slate-700">Mode sombre</Text>
+                <Text className="text-xl text-slate-700">Dark mode</Text>
               </View>
             ) : (
               <View className="flex-row items-center gap-4">
                 <Sun size={25} color={colors.drawerText} />
-                <Text className="text-xl text-slate-100">Mode clair</Text>
+                <Text className="text-xl text-slate-100">Light mode</Text>
               </View>
             )}
           </Pressable>

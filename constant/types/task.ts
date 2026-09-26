@@ -1,3 +1,7 @@
+import { SQLiteDatabase } from "expo-sqlite";
+import { Dispatch } from "react";
+import { TextProps } from "react-native-svg";
+
 export interface CreateTask {
   idTask: number;
   taskTitle: string;
@@ -28,3 +32,11 @@ export interface Task {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type TaskProps = TextProps & {
+  task: Task;
+  view: string;
+  db: SQLiteDatabase | null;
+  date: string;
+  deleteSetter?: Dispatch<any>;
+};
