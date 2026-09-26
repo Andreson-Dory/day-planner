@@ -5,6 +5,8 @@ import Row from "../row";
 import { Task, TaskProps } from "@/constant/types/task";
 import { useTaskData } from "@/hooks/useTaskData";
 import { StatusBadge } from "./StatusBadge";
+import { useState } from "react";
+import DeleteTaskModal from "./DeleteConfirmation";
 
 export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
   const {
@@ -20,6 +22,7 @@ export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
     handleFinish,
     handleDelete,
   } = useTaskData(task);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   return (
     <Pressable onPress={() => setPressed(!pressed)}>
       <View
@@ -70,7 +73,7 @@ export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
                       type="Delete"
                       onPress={() => {
                         if (view !== "create_plan") {
-                          handleDelete(task, db, view, dispatch, date);
+                          setShowDeleteModal(true);
                           return;
                         }
                         if (!deleteSetter) return;
@@ -83,6 +86,16 @@ export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
           </View>
         )}
       </View>
+      <DeleteTaskModal
+        showDeleteConfirmationModal={showDeleteModal}
+        setShowDeleteConfirmationModal={setShowDeleteModal}
+        task={task}
+        db={db}
+        view={view}
+        date={date}
+        dispatch={dispatch}
+        handleDelete={handleDelete}
+      />
     </Pressable>
   );
 }
