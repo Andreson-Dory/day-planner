@@ -59,6 +59,12 @@ export const getTaskColor = (status: string) => {
         bc: "border-l-orange-500 dark:border-l-amber-400",
       };
 
+    case "repetitive":
+      return {
+        tc: "bg-gray-50 dark:bg-gray-600",
+        bc: "border-l-gray-500 dark:border-l-gray-400",
+      };
+
     default:
       return {
         tc: "bg-cyan-50 dark:bg-sky-950",

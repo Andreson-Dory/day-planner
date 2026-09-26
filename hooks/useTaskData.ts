@@ -4,11 +4,7 @@ import { Dispatch, useEffect, useState } from "react";
 import { calculateDuration, formatDuration, formatTime } from "@/utils/date";
 import { useDispatch } from "react-redux";
 import { deleteTaskService, setFinishedTask } from "@/services/task-sevices";
-import {
-  getRepetitiveTasksAction,
-  getTasksDailyAction,
-  getTasksWeekAction,
-} from "@/redux/actions/taskActions";
+import { getRepetitiveTasksAction, getTasksDailyAction } from "@/redux/actions/taskActions";
 import { alarmNotificationService } from "@/lib/notifications";
 import { useTheme } from "./useTheme";
 import Toast from "react-native-toast-message";
@@ -21,6 +17,8 @@ const getTaskStatus = (task: Task) => {
 
   if (task.isCompleted) {
     return "completed";
+  } else if (task.isRepetitive) {
+    return "repetitive";
   } else if (endTime < now) {
     return "overdue";
   } else if (startTime > now) {

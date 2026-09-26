@@ -1,22 +1,12 @@
 import { Pressable, TextProps, View } from "react-native";
-import { Dispatch } from "react";
 import Button from "../button/Button";
 import { ThemedText } from "../ThemedText";
 import Row from "../row";
-import { SQLiteDatabase } from "expo-sqlite";
-import { Task } from "@/constant/types/task";
+import { Task, TaskProps } from "@/constant/types/task";
 import { useTaskData } from "@/hooks/useTaskData";
 import { StatusBadge } from "./StatusBadge";
 
-type Props = TextProps & {
-  task: Task;
-  view: string;
-  db: SQLiteDatabase | null;
-  date: string;
-  deleteSetter?: Dispatch<any>;
-};
-
-export function TaskCard({ task, view, db, date, deleteSetter }: Props) {
+export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
   const {
     taskStatus,
     taskColor,
@@ -40,39 +30,54 @@ export function TaskCard({ task, view, db, date, deleteSetter }: Props) {
         </ThemedText>
         {pressed && (
           <View>
-            <View className="items-start">
-              <StatusBadge status={taskStatus} />
-            </View>
+            {!task.isRepetitive && (
+              <View className="items-start">
+                <StatusBadge status={taskStatus} />
+              </View>
+            )}
             <View className="flex-row items-start justify-between gap-0.25 my-1.25 mx-2.5">
               <View className="flex-row gap-0.25 my-1.25 mx-2.5">
                 <ThemedText className="text-base leading-none font-thin text-slate-950 dark:text-slate-50">
-                  {startTimeStr} - {endTimeStr}{" "}
+                  {startTimeStr} - {endTimeStr}
                 </ThemedText>
                 <ThemedText className="text-base leading-none font-bold text-slate-500 dark:text-slate-300">
                   ({durationStr})
                 </ThemedText>
               </View>
-              <ThemedText className="text-xl leading-none font-bold text-slate-500 dark:text-slate-300">
-                {task.isRepetitive ? task.repeatType?.toUpperCase() : ""}
-              </ThemedText>
+              {task.isRepetitive === 1 && (
+                <ThemedText className="text-xl leading-none font-bold text-slate-500 dark:text-slate-300">
+                  {task.repeatType?.toUpperCase()}
+                </ThemedText>
+              )}
             </View>
-            {taskStatus !== "completed" && view !== "dashboard" && (
+            {view !== "dashboard" && (
               <Row>
-                {view === "create_plan" ? null : (
+                {view === "create_plan" ||
+                task.isRepetitive === 1 ||
+                taskStatus === "completed" ? null : (
                   <Button
                     type="Finish"
                     onPress={() => handleFinish(task, db, view, dispatch, date)}
                   />
                 )}
-                <Button
-                  type="Delete"
-                  onPress={() => {
-                    if (view === "create_plan") {
-                      if (!deleteSetter) return;
-                      deleteSetter(task);
-                    } else handleDelete(task, db, view, dispatch, date);
-                  }}
-                />
+
+                {taskStatus !== "completed" &&
+                  (task.isRepetitive === 0
+                    ? true
+                    : (view === "repetitive" || view === "create_plan") &&
+                      task.isRepetitive === 1) && (
+                    <Button
+                      type="Delete"
+                      onPress={() => {
+                        if (view !== "create_plan") {
+                          handleDelete(task, db, view, dispatch, date);
+                          return;
+                        }
+                        if (!deleteSetter) return;
+                        deleteSetter(task);
+                      }}
+                    />
+                  )}
               </Row>
             )}
           </View>
