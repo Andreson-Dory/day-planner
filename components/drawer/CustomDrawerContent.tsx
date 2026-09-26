@@ -25,10 +25,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
       <DrawerContentScrollView {...props}>
         <View className="items-center gap-4 mb-10">
           <View className="rounded-full items-center justify-center bg-transparent w-20 h-20">
-            <Image
-              source={require("@/assets/images/day-planner-planner.png")}
-              className="w-20 h-20"
-            />
+            <Image source={require("@/assets/images/day-planner-logo.png")} className="w-20 h-20" />
           </View>
           <GradientText
             text="DAY PLANNER"
