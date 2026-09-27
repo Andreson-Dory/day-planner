@@ -20,6 +20,7 @@ const config: ExpoConfig = {
     package: IS_DEV ? "com.ando.dayplanner.dev" : "com.ando.dayplanner",
 
     permissions: [
+      "POST_NOTIFICATIONS",
       "SCHEDULE_EXACT_ALARM",
       "WRITE_EXTERNAL_STORAGE",
       "WAKE_LOCK",
@@ -30,6 +31,7 @@ const config: ExpoConfig = {
   },
 
   plugins: [
+    "expo-background-task",
     "expo-router",
     "expo-sqlite",
     "@react-native-community/datetimepicker",
@@ -37,7 +39,6 @@ const config: ExpoConfig = {
     "expo-image",
     "expo-status-bar",
     "expo-web-browser",
-    ["expo-notifications", { defaultChannel: "alarm_v6" }],
     [
       "expo-build-properties",
       {

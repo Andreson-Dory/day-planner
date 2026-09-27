@@ -17,6 +17,7 @@ import { Link, useFocusEffect } from "expo-router";
 import { TasksContainer } from "@/components/task/TasksContainer";
 import { formatLocalDate } from "@/utils/date";
 import { calculateRate } from "@/utils/math";
+import { registerBackgroundResync } from "@/utils/backgroundResync";
 
 export default function Index() {
   const colors = useThemeColors();
@@ -29,6 +30,7 @@ export default function Index() {
   useEffect(() => {
     async function refreshNotifications() {
       const { notificationsGranted } = await alarmNotificationService.init();
+      await registerBackgroundResync();
 
       if (db && notificationsGranted) {
         const tasks = await getAllTask(db);

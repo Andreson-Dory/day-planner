@@ -1,10 +1,14 @@
-import { CreateTask, Task } from "@/constant/types/task";
+import { CreateTask } from "@/constant/types/task";
 import { buildTrigger } from "@/utils/notification";
-import * as Notifications from "expo-notifications";
+import notifee, {
+  AlarmType,
+  AndroidCategory,
+  AndroidImportance,
+  AndroidNotificationSetting,
+  AndroidVisibility,
+  AuthorizationStatus,
+} from "@notifee/react-native";
 import { Platform } from "react-native";
-import * as Application from "expo-application";
-import * as IntentLauncher from "expo-intent-launcher";
-import { canScheduleExactAlarms } from "react-native-permissions";
 
 const CHANNEL_ID = "alarm_v6";
 
@@ -13,15 +17,9 @@ export type NotificationCapabilities = {
   exactAlarmsGranted: boolean;
 };
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    priority: Notifications.AndroidNotificationPriority.MAX,
-  }),
-});
+export type ScheduleOptions = {
+  ongoing?: boolean;
+};
 
 class AlarmNotificationService {
   private capabilities: NotificationCapabilities | null = null;
@@ -30,39 +28,36 @@ class AlarmNotificationService {
     let exactAlarmsGranted = true;
 
     if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+      await notifee.createChannel({
+        id: CHANNEL_ID,
         name: "Task Alarms",
-        importance: Notifications.AndroidImportance.MAX,
+        importance: AndroidImportance.HIGH,
+        sound: "default",
+        vibration: true,
         vibrationPattern: [1000, 1000, 1000, 1000],
-        enableVibrate: true,
-        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        visibility: AndroidVisibility.PUBLIC,
         bypassDnd: true,
-        audioAttributes: {
-          usage: Notifications.AndroidAudioUsage.ALARM,
-        },
-      });
-
-      if (Platform.Version >= 31) {
-        exactAlarmsGranted = await canScheduleExactAlarms();
-      }
-    }
-
-    let permissions = await Notifications.getPermissionsAsync();
-    if (permissions.status === "undetermined") {
-      permissions = await Notifications.requestPermissionsAsync({
-        ios: {
-          allowAlert: true,
-          allowBadge: false,
-          allowSound: true,
-        },
       });
     }
 
-    const notificationsGranted =
-      permissions.granted ||
-      permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+    let settings = await notifee.getNotificationSettings();
+    const shouldRequestPermission =
+      settings.authorizationStatus === AuthorizationStatus.NOT_DETERMINED ||
+      (Platform.OS === "android" &&
+        Platform.Version >= 33 &&
+        settings.authorizationStatus === AuthorizationStatus.DENIED);
+
+    if (shouldRequestPermission) {
+      settings = await notifee.requestPermission({ alert: true, badge: false, sound: true });
+    }
+
+    const notificationsGranted = settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
     if (!notificationsGranted) {
-      console.warn("Notification permissions not granted:", permissions.status);
+      console.warn("Notification permissions not granted:", settings.authorizationStatus);
+    }
+
+    if (Platform.OS === "android" && Platform.Version >= 31) {
+      exactAlarmsGranted = settings.android.alarm === AndroidNotificationSetting.ENABLED;
     }
 
     this.capabilities = { notificationsGranted, exactAlarmsGranted };
@@ -75,28 +70,49 @@ class AlarmNotificationService {
 
   async openExactAlarmSettings() {
     if (Platform.OS !== "android" || Platform.Version < 31) return;
-
-    await IntentLauncher.startActivityAsync("android.settings.REQUEST_SCHEDULE_EXACT_ALARM", {
-      data: `package:${Application.applicationId}`,
-    });
+    await notifee.openAlarmPermissionSettings();
   }
 
-  async schedule(task: CreateTask, date: Date, title: string, body: string): Promise<string> {
-    const { notificationsGranted } = await this.getCapabilities();
+  async schedule(
+    task: CreateTask,
+    date: Date,
+    title: string,
+    body: string,
+    options?: ScheduleOptions,
+  ): Promise<string> {
+    const { notificationsGranted, exactAlarmsGranted } = await this.getCapabilities();
     if (!notificationsGranted) return "";
 
+    const ongoing = options?.ongoing ?? true;
+
     try {
-      return await Notifications.scheduleNotificationAsync({
-        content: {
+      const trigger = buildTrigger(task, date);
+      if (Platform.OS === "android") {
+        trigger.alarmManager = exactAlarmsGranted
+          ? { type: AlarmType.SET_EXACT_AND_ALLOW_WHILE_IDLE }
+          : false;
+      }
+
+      return await notifee.createTriggerNotification(
+        {
           title,
           body,
-          sound: true,
-          autoDismiss: false,
-          sticky: true,
-          interruptionLevel: "timeSensitive",
+          android: {
+            channelId: CHANNEL_ID,
+            category: AndroidCategory.ALARM,
+            importance: AndroidImportance.HIGH,
+            ongoing,
+            autoCancel: !ongoing,
+            pressAction: { id: "default" },
+          },
+          ios: {
+            sound: "default",
+            badgeCount: 0,
+            interruptionLevel: "timeSensitive",
+          },
         },
-        trigger: buildTrigger(task, date, CHANNEL_ID),
-      });
+        trigger,
+      );
     } catch (error) {
       console.error("Failed to schedule notification:", title, error);
       return "";
@@ -109,19 +125,19 @@ class AlarmNotificationService {
     date: Date,
     title: string,
     body: string,
+    options?: ScheduleOptions,
   ) {
     if (oldId) {
       await this.cancel([oldId]);
     }
-    return this.schedule(task, date, title, body);
+    return this.schedule(task, date, title, body, options);
   }
 
   async cancel(notificationIds: string[]) {
     await Promise.all(
       notificationIds.filter(Boolean).map(async (notificationId) => {
         try {
-          await Notifications.cancelScheduledNotificationAsync(notificationId);
-          await Notifications.dismissNotificationAsync(notificationId);
+          await notifee.cancelNotification(notificationId);
         } catch (error) {
           console.error("Failed to cancel notification:", notificationId, error);
         }
