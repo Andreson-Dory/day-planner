@@ -482,7 +482,7 @@ export default function CreatePlan() {
 
                 {isRepetitive && (
                   <Row className="w-full gap-2">
-                    {(["daily", "weekly", "monthly"] as const).map((type) => (
+                    {(["daily", "weekly" /* , "monthly" */] as const).map((type) => (
                       <Pressable
                         key={type}
                         onPress={() => setRepeatType(type)}

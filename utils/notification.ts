@@ -1,50 +1,68 @@
 import { CreateTask } from "@/constant/types/task";
-import * as Notifications from "expo-notifications";
+import { RepeatFrequency, TimestampTrigger, TriggerType } from "@notifee/react-native";
 
-export function buildTrigger(task: CreateTask, date: Date, channelId: string) {
+export function buildTrigger(task: CreateTask, date: Date): TimestampTrigger {
+  const triggerDate = task.isRepetitive ? getNextRepeatDate(task, date) : date;
+  const trigger: TimestampTrigger = {
+    type: TriggerType.TIMESTAMP,
+    timestamp: triggerDate.getTime(),
+  };
+
   if (!task.isRepetitive) {
-    return {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: date,
-      channelId: channelId,
-    }; // one-off, as today
+    return trigger;
   }
-  const hour = date.getHours();
-  const minute = date.getMinutes();
 
   switch (task.repeatType) {
     case "daily":
-      return {
-        type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour,
-        minute,
-        repeats: true,
-        channelId: channelId,
-      };
+      trigger.repeatFrequency = RepeatFrequency.DAILY;
+      break;
     case "weekly":
-      return {
-        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday: date.getDay() + 1,
-        hour,
-        minute,
-        repeats: true,
-        channelId: channelId,
-      }; // expo weekday is 1-7, Sunday=1
-    case "monthly":
-      return {
-        type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
-        day: date.getDate(),
-        hour,
-        minute,
-        repeats: true,
-        channelId: channelId,
-      };
+      trigger.repeatFrequency = RepeatFrequency.WEEKLY;
+      break;
+    /* case "monthly":
+      break; */
     default:
-      // isRepetitive was true but repeatType is null/unexpected — fall back to one-off
-      return {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: date,
-        channelId: channelId,
-      };
+      return { ...trigger, timestamp: triggerDate.getTime() };
   }
+
+  return trigger;
+}
+
+function getNextRepeatDate(task: CreateTask, date: Date): Date {
+  const now = new Date();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
+  if (task.repeatType === "daily") {
+    const nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+    if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 1);
+    return nextDate;
+  }
+
+  if (task.repeatType === "weekly") {
+    const nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+    const daysUntil = (date.getDay() - nextDate.getDay() + 7) % 7;
+    nextDate.setDate(nextDate.getDate() + daysUntil);
+    if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 7);
+    return nextDate;
+  }
+
+  if (task.repeatType === "monthly") {
+    for (let monthOffset = 0; monthOffset < 24; monthOffset += 1) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+      const lastDay = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+      if (date.getDate() > lastDay) continue;
+
+      const nextDate = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth(),
+        date.getDate(),
+        hour,
+        minute,
+      );
+      if (nextDate > now) return nextDate;
+    }
+  }
+
+  return date;
 }
