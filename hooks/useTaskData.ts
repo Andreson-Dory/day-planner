@@ -9,6 +9,7 @@ import { alarmNotificationService } from "@/lib/notifications";
 import { useTheme } from "./useTheme";
 import Toast from "react-native-toast-message";
 import { getTaskColor } from "@/constant/task";
+import { useThemeColors } from "./useThemeColors";
 
 const getTaskStatus = (task: Task) => {
   const now = new Date();
@@ -111,6 +112,7 @@ const handleDelete = async (
 
 export function useTaskData(task: Task) {
   const { theme } = useTheme();
+  const colors = useThemeColors();
   const dispatch = useDispatch();
   const [taskStatus, setTaskStatus] = useState<string>("");
   const [taskColor, setTaskColor] = useState<string>("");
@@ -129,7 +131,7 @@ export function useTaskData(task: Task) {
   const durationStr = formatDuration(duration);
   const startTimeStr = formatTime(startTime);
   const endTimeStr = formatTime(endTime);
-  const [pressed, setPressed] = useState(false);
+  const [pressed, setPressed] = useState<boolean>(false);
 
   useEffect(() => {
     const status = getTaskStatus(task);
@@ -149,6 +151,7 @@ export function useTaskData(task: Task) {
     startTimeStr,
     endTimeStr,
     pressed,
+    colors,
     //Actions
     setPressed,
     dispatch,
