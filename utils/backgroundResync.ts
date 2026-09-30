@@ -20,6 +20,6 @@ TaskManager.defineTask(RESYNC_TASK, async () => {
 
 export async function registerBackgroundResync() {
   await BackgroundTask.registerTaskAsync(RESYNC_TASK, {
-    minimumInterval: 60 * 12,
+    minimumInterval: 15,
   });
 }

@@ -10,7 +10,7 @@ import notifee, {
 } from "@notifee/react-native";
 import { Platform } from "react-native";
 
-const CHANNEL_ID = "alarm_v6";
+const CHANNEL_ID = "alarm_v8";
 
 export type NotificationCapabilities = {
   notificationsGranted: boolean;
