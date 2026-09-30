@@ -10,6 +10,8 @@ import DeleteTaskModal from "./DeleteConfirmation";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SharedValue } from "react-native-reanimated";
 import { DeleteAction, FinishAction } from "@/components/task/SwipeActions";
+import { getWeekDay } from "@/utils/week-task";
+import { formatLocalDate } from "@/utils/date";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -122,7 +124,8 @@ export function TaskCard({ task, view, db, date, deleteSetter }: TaskProps) {
                 </View>
                 {task.isRepetitive === 1 && (
                   <ThemedText className="text-xl leading-none font-bold text-slate-500 dark:text-slate-300">
-                    {task.repeatType?.toUpperCase()}
+                    {task.repeatType?.toUpperCase()}{" "}
+                    {task.repeatType === "monthly" && getWeekDay(formatLocalDate(new Date(date)))}
                   </ThemedText>
                 )}
               </View>
